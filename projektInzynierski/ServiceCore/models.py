@@ -38,8 +38,8 @@ class Task(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=32)
-    users = models.ManyToManyField(User)
-    tasks = models.ManyToManyField(Task)
+    users = models.ManyToManyField(User, blank=True, null=True)
+    tasks = models.ManyToManyField(Task, blank=True, null=True)
 
 class Solution(models.Model):
     pathToFile = models.FilePathField()
