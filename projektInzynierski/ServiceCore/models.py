@@ -6,6 +6,9 @@ from django.contrib.auth.models import User
 class UserType(models.Model):
     name = models.CharField(max_length=32)
 
+    def __str__(self):
+        return self.name
+
 '''
     User model posiada pola:
         first_name, last_name, username, email, password
@@ -13,6 +16,9 @@ class UserType(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     userType = models.ForeignKey(UserType, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.username + " - " + self.userType.name
 
 class Exercise(models.Model):
     title = models.CharField(max_length=128)
