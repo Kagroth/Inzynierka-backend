@@ -6,6 +6,10 @@ from django.contrib.auth.models import User
 class UserType(models.Model):
     name = models.CharField(max_length=32)
 
+'''
+    User model posiada pola:
+        first_name, last_name, username, email, password
+'''
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     userType = models.ForeignKey(UserType, on_delete=models.CASCADE)
