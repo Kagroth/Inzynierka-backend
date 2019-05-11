@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
+from ServiceCore.models import Group
 
-from ServiceCore.serializers import UserSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -26,3 +27,12 @@ class ListUsers(APIView):
         #usersSetJson = JSONRenderer().render(usersSetSerialized.data)
 
         return Response(usersSetSerialized.data)
+
+class ListGroup(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self, request):
+        groupSet = Group.objects.all()
+        groupSetSerialized = GroupSerializer(groupSet, many=True)
+
+        return Response(groupSetSerialized.data)
