@@ -7,6 +7,7 @@ from ServiceCore.models import Group
 from ServiceCore.serializers import UserSerializer, GroupSerializer
 
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework.renderers import JSONRenderer
@@ -15,7 +16,15 @@ from rest_framework.renderers import JSONRenderer
 def index(request):
     return HttpResponse("Test")
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    
+'''
 class ListUsers(APIView):
     permission_classes = (AllowAny,)
 
@@ -36,3 +45,4 @@ class ListGroup(APIView):
         groupSetSerialized = GroupSerializer(groupSet, many=True)
 
         return Response(groupSetSerialized.data)
+'''
