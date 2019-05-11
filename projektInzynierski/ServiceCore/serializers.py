@@ -11,6 +11,13 @@ class UserSerializer(serializers.ModelSerializer):
     
 # ServiceCore Group serializer model
 class GroupSerializer(serializers.ModelSerializer):
+    # SlugRelatedField pozwala na wypisanie polaczonych obiektow w postaci pola slug_field
+    # users = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
+    
+    # Nested Serializer pozwala na wypisanie obiektow w postaci zserializowanej
+    
+    users = UserSerializer(many=True)
+
     class Meta:
         model = Group
-        fields = ('name')
+        fields = ('name', 'users',)
