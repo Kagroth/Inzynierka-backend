@@ -41,6 +41,9 @@ class Group(models.Model):
     users = models.ManyToManyField(User, blank=True, null=True)
     tasks = models.ManyToManyField(Task, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+
 class Solution(models.Model):
     pathToFile = models.FilePathField()
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
