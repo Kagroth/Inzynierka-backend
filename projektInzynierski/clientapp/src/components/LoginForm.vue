@@ -26,7 +26,10 @@ export default {
         loginUser(event) {
             event.preventDefault();
             
-            this.$store.dispatch('loginUser', this.form);
+            this.$store.dispatch('loginUser', this.form)
+                       .then(() => {alert("Zalogowano!");})
+                       .catch(() => {alert("Niepowodzenie logowania")});           
+            
         }
     }
 }
