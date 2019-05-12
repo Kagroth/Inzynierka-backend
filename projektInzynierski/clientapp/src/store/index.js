@@ -17,20 +17,11 @@ export default new Vuex.Store({
 
   actions: {
     createUser ({commit}, payload) {
-      console.log("username in store: ")
-      console.log(payload.username)
+      console.log("Wysylam request")
 
-      fetch('http://localhost:8000/users/').then(
-        response => {
-          return response.json()
-        }).then(data => {
-          for(let user of data) {
-            console.log(user);
-          }
-        })
-      .catch(response => {
-        console.log(response)
-      })
+      axios.post("http://localhost:8000/users/", payload)
+           .then(response => console.log("Sukces" + response))
+           .catch(error => console.log(error.response))
     }
   }
 })
