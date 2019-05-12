@@ -27,7 +27,11 @@ export default {
             event.preventDefault();
             
             this.$store.dispatch('loginUser', this.form)
-                       .then(() => {alert("Zalogowano!");})
+                       .then(() => {
+                           alert("Zalogowano!");
+                           console.log("Przekierowuje do /groups!")
+                           this.$router.push('/groups');
+                           })
                        .catch(() => {alert("Niepowodzenie logowania")});           
             
         }
