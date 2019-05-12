@@ -4,15 +4,15 @@
     <br>
     <br>
     <form>
-      <input type="text" placeholder="Imie">
+      <input type="text" placeholder="Imie" v-model="form.firstname">
       <br>
-      <input type="text" placeholder="Nazwisko">
+      <input type="text" placeholder="Nazwisko" v-model="form.lastname">
       <br>
       <input type="text" placeholder="Nazwa uzytkownika" v-model="form.username">
       <br>
-      <input type="email" placeholder="email">
+      <input type="email" placeholder="email" v-model="form.email">
       <br>
-      <input type="password" placeholder="Haslo">
+      <input type="password" placeholder="Haslo" v-model="form.password">
       <br>
       <input type="password" placeholder="Powtorz haslo">
       <br>
@@ -26,7 +26,11 @@ export default {
   data() {
     return {
       form: {
-        username: ""
+        firstname: "",
+        lastname: "",
+        username: "",
+        email: "",
+        password: ""
       }
     };
   },
@@ -35,7 +39,7 @@ export default {
     registerUser(event) {
       event.preventDefault();
       console.log("Username in component: " + this.form.username);
-      this.$store.dispatch("createUser", {username: this.form.username});
+      this.$store.dispatch("createUser", this.form);
     }
   }
 };
