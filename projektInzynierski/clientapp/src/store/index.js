@@ -12,7 +12,10 @@ export default new Vuex.Store({
   },
 
   mutations: {
-
+    setToken (state, payload) {
+      state.token = payload.token;
+      state.isLogged = true
+    }
   },
 
   actions: {
@@ -27,9 +30,22 @@ export default new Vuex.Store({
     loginUser ({commit}, payload) {
       console.log("Wysylam request logowania");
 
-      axios.post("http://localhost:8000/token/", payload)
-           .then(response => console.log(response))
-           .catch(error => console.log(error.response))
+      return new Promise((resolve, reject) => {
+        axios.post("http://localhost:8000/token/", payload)
+           .then(response => {
+             console.log(response.data.access);
+             commit('setToken', {
+               token: response.data.access
+             });
+             
+             resolve()
+           })
+           .catch(error => {            
+             console.log(error.response);
+             reject()
+           })
+      }
+      )      
     }
   }
 })
