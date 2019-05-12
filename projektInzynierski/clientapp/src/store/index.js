@@ -15,13 +15,20 @@ export default new Vuex.Store({
 
   mutations: {
     setToken (state, payload) {
-      state.token = payload.token;
-      state.isLogged = true
+      localStorage.setItem('token', payload.token);
+      state.token = localStorage.getItem('token');
+      state.isLogged = (localStorage.getItem('token') != null)
     },
 
     setGroups (state, payload) {
       console.log(payload)
       state.groups = payload;
+    },
+
+    logout (state) {
+      localStorage.setItem('token', null);
+      state.token = null;
+      state.isLogged = false;
     }
   },
 
@@ -59,7 +66,10 @@ export default new Vuex.Store({
       console.log("Wysylam rzadanie wyswietlenia grup!")
 
       return new Promise((resolve, reject) => {
-        axios.get("http://localhost:8000/groups/")
+        let authHeader = "Bearer " + this.state.token;
+        axios.get("http://localhost:8000/groups/", {headers: {
+          'Authorization': authHeader
+        }})
            .then((response) => {
               commit('setGroups', response.data)
               resolve()
