@@ -9,7 +9,7 @@ from ServiceCore.serializers import UserSerializer, GroupSerializer
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 
 # Create your views here.
@@ -36,6 +36,8 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({"message": "Dupa"})
 
 class GroupViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     
