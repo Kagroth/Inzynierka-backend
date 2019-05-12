@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
-from ServiceCore.models import Group
+from ServiceCore.models import Group, Profile, UserType
 
 from ServiceCore.serializers import UserSerializer, GroupSerializer
 
@@ -19,6 +19,21 @@ def index(request):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    # przeladowanie handlera metody POST -> tworzenie usera
+    # aktualnie domyslnie tworzony jest student
+    def create(self, request):
+        data = request.data
+        userType = UserType.objects.get(name="Student")
+        user = User.objects.create_user(username=data['username'],
+                                        first_name=data['firstname'],
+                                        last_name=data['lastname'],
+                                        email=data['email'],
+                                        password=data['password'])
+        user.save()
+        profile = Profile.objects.create(user=user, userType=userType)
+        profile.save()
+        return Response({"message": "Dupa"})
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
