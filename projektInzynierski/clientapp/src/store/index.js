@@ -7,7 +7,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     token: localStorage.getItem('token'),
-    isLogged: (this.token != null)
+    isLogged: (this.token != null),
+
+    groups: []
 
   },
 
@@ -15,6 +17,11 @@ export default new Vuex.Store({
     setToken (state, payload) {
       state.token = payload.token;
       state.isLogged = true
+    },
+
+    setGroups (state, payload) {
+      console.log(payload)
+      state.groups = payload;
     }
   },
 
@@ -46,6 +53,22 @@ export default new Vuex.Store({
            })
       }
       )      
+    },
+
+    getAllGroups ({commit}, payload) {
+      console.log("Wysylam rzadanie wyswietlenia grup!")
+
+      return new Promise((resolve, reject) => {
+        axios.get("http://localhost:8000/groups/")
+           .then((response) => {
+              commit('setGroups', response.data)
+              resolve()
+           })
+           .catch(() => {
+            alert("Blad pobierania grup")
+            reject()
+           })
+      })      
     }
   }
 })
