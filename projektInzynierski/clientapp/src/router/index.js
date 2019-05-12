@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import MainNav from '@/components/MainNav'
+import StartSite from '@/components/StartSite'
 import LoginForm from '@/components/LoginForm'
 import RegisterForm from '@/components/RegisterForm'
 import GroupListing from '@/components/GroupListing'
@@ -12,7 +12,7 @@ export default new Router({
     {
       path: '/',
       name: 'App',
-      component: MainNav
+      component: StartSite
     },
     {
       path: '/login',
