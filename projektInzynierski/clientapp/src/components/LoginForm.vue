@@ -30,7 +30,7 @@ export default {
                        .then(() => {
                            alert("Zalogowano!");
                            console.log("Przekierowuje do /groups!")
-                           this.$router.push('/groups');
+                           this.$router.push('/');
                            })
                        .catch(() => {alert("Niepowodzenie logowania")});           
             
