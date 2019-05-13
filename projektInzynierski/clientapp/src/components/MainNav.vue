@@ -5,6 +5,7 @@
             <li><router-link to ="/register">Rejestracja</router-link></li>
         </ul>
         <ul v-else>
+            <li><router-link to="/groups">Wyswietl grupy</router-link></li>
             <li @click="logout">Wyloguj</li>
         </ul>
     </div>
