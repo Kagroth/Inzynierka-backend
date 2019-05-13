@@ -40,6 +40,17 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+    def create(self, request):
+        data = request.data['params']
+        
+        newGroup = Group.objects.create(name=data['groupName'])
+
+        for userToAddToGroup in data['selectedUsers']:
+            user = User.objects.get(username=userToAddToGroup['username'])
+            newGroup.users.add(user)
+
+        return Response({"message": "sukces"})
     
 '''
 class ListUsers(APIView):
