@@ -7,9 +7,10 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     token: localStorage.getItem('token'),
-    isLogged: (this.token != null),
+    isLogged: (localStorage.getItem('token') !== null),
 
-    groups: []
+    groups: [],
+    users: []
 
   },
 
@@ -18,6 +19,10 @@ export default new Vuex.Store({
       localStorage.setItem('token', payload.token);
       state.token = localStorage.getItem('token');
       state.isLogged = (localStorage.getItem('token') != null)
+    },
+
+    setUsers (state, payload) {
+      state.users = payload
     },
 
     setGroups (state, payload) {
@@ -62,8 +67,24 @@ export default new Vuex.Store({
       )      
     },
 
+    getAllUsers({commit}, payload) {
+      console.log("Wysylam zadanie pobrania userow!");
+
+      return new Promise((resolve, reject) => {
+        axios.get('http://localhost:8000/users/')
+             .then((response) => {
+               commit('setUsers', response.data)
+               resolve();
+             })
+             .catch(() => {
+               console.log("Blad pobierania userow");
+               reject();
+             })
+      })
+    },
+
     getAllGroups ({commit}, payload) {
-      console.log("Wysylam rzadanie wyswietlenia grup!")
+      console.log("Wysylam zadanie wyswietlenia grup!")
 
       return new Promise((resolve, reject) => {
         let authHeader = "Bearer " + this.state.token;
@@ -79,6 +100,24 @@ export default new Vuex.Store({
             reject()
            })
       })      
+    },
+
+    createGroup ({commit}, payload) {
+      return new Promise((resolve, reject) => {
+        let authHeader = "Bearer " + this.state.token;
+
+        axios.post("http://localhost:8000/groups/", {
+          params: payload},
+          {headers: {
+          'Authorization': authHeader
+        }})
+          .then((response) => {
+            resolve()
+          })
+          .catch((error) => {
+            reject()
+          })
+      })
     }
   }
 })
