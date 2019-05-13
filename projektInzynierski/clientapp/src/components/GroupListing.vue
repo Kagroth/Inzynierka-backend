@@ -1,5 +1,7 @@
 <template>
   <div>
+    <p><router-link to="/groups/new">Utwórz grupe</router-link></p>
+    <h2>Grupy:</h2>
     <group :key="group" v-for="group in groups" v-bind:group="group"/>
   </div>
 </template>
@@ -31,12 +33,13 @@ export default {
     created() {
       this.$store.dispatch('getAllGroups').then(
         () => { 
-          alert("Wszystkie grupy zwrocone!")
           this.groups = this.$store.state.groups
           }
       )
       .catch(
-        () => { alert("Nie udalo sie zwrocic grup!")}
+        () => { 
+          console.log("Nie udalo sie pobrac grup")
+          alert("Nie udalo sie zwrocic grup!")}
       )
     }
     
