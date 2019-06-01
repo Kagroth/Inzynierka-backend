@@ -12,7 +12,8 @@ export default new Vuex.Store({
     username: "",
 
     groups: [],
-    users: []
+    users: [],
+    exercises: []
 
   },
 
@@ -37,13 +38,18 @@ export default new Vuex.Store({
 
     setGroups (state, payload) {
       console.log(payload)
-      state.groups = payload;
+      state.groups = payload
     },
 
     logout (state) {
       localStorage.setItem('token', null);
       state.token = null;
       state.isLogged = false;
+    },
+
+    setExercises(state, payload) {
+      console.log(payload)
+      state.exercises = payload
     }
   },
 
@@ -161,6 +167,25 @@ export default new Vuex.Store({
           .catch((error) => {
             reject(error)
           })
+      })
+    },
+
+    getAllExercises({commit}) {
+      console.log("Wysylam zadanie pobrania ćwiczeń!");
+
+      return new Promise((resolve, reject) => {
+        let authHeader = "Bearer " + this.state.token;
+        axios.get('http://localhost:8000/exercises/', {headers: {
+          'Authorization': authHeader
+        }})
+             .then((response) => {
+               commit('setExercises', response.data)
+               resolve();
+             })
+             .catch(() => {
+               console.log("Blad pobierania cwiczen");
+               reject();
+             })
       })
     }
   }

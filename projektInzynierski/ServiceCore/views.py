@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType
+from ServiceCore.models import Group, Profile, UserType, Exercise
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -104,3 +104,20 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nastąpił błąd podczas tworzenia grupy"})
 
         return Response({"message": "Grupa została utworzona"})
+
+
+class ExerciseViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ExerciseSerializer
+
+    def get_queryset(self):
+        queryset = None
+        print(self.request.user)
+        profile = Profile.objects.get(user=self.request.user)
+
+        if profile.userType.name == "Student":
+            queryset = Exercise.objects.all()
+        else:
+            queryset = self.request.user.exercises.all()
+        
+        return queryset
