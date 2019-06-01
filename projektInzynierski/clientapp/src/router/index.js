@@ -5,6 +5,7 @@ import LoginForm from '@/components/LoginForm'
 import RegisterForm from '@/components/RegisterForm'
 import GroupListing from '@/components/GroupListing'
 import GroupCreator from '@/components/GroupCreator'
+import Group from '@/components/Group'
 
 Vue.use(Router)
 
@@ -26,6 +27,11 @@ export default new Router({
     {
       path: '/groups',
       component: GroupListing
+    },
+    {
+      path: '/groups/:name',
+      name: 'GroupDetails',
+      component: Group
     },
     {
       path: '/groups/new',

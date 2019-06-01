@@ -2,7 +2,10 @@
   <div>
     <p><router-link to="/groups/new">Utwórz grupe</router-link></p>
     <h2>Grupy:</h2>
-    <group :key="group" v-for="group in groups" v-bind:group="group"/>
+    <ul>
+      <li :key="group" v-for="group in groups"> 
+        <span>{{ group.name }}</span> - <span @click="showGroupDetails(group)">Podgląd</span></li>
+    </ul>
   </div>
 </template>
 
@@ -21,7 +24,9 @@ export default {
     },
 
     methods: {
-
+      showGroupDetails(group) {
+        this.$router.push({name: 'GroupDetails', params: {name: group.name, group: group}})
+      }
     },
 
     computed: {
