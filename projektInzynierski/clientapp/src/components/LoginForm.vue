@@ -17,7 +17,6 @@ export default {
             form: {
                 username: "",
                 password: ""
-
             }   
         }
     },
@@ -25,6 +24,13 @@ export default {
     methods: {
         loginUser(event) {
             event.preventDefault();
+
+            for(let field in this.form) {
+                if(this.form[field] === "") {
+                    alert("Niepodano wszystkich danych!")
+                    return
+                }
+            }
             
             this.$store.dispatch('loginUser', this.form)
                        .then(() => {
