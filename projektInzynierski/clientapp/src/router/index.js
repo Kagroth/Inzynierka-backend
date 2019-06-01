@@ -8,6 +8,7 @@ import GroupCreator from '@/components/GroupCreator'
 import Group from '@/components/Group'
 import TaskManager from '@/components/TaskManager'
 import ExerciseListing from '@/components/ExerciseListing'
+import ExerciseCreator from '@/components/ExerciseCreator'
 import TestListing from '@/components/TestListing'
 
 Vue.use(Router)
@@ -53,6 +54,10 @@ export default new Router({
         {
           path: 'tests',
           component: TestListing
+        },
+        {
+          path: 'newExercise',
+          component: ExerciseCreator
         }
       ]
     }
