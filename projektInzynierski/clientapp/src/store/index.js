@@ -93,6 +93,22 @@ export default new Vuex.Store({
       })
     },
 
+    getAllStudents({commit}, payload) {
+      console.log("Wysylam zadanie pobrania studentow!");
+
+      return new Promise((resolve, reject) => {
+        axios.get('http://localhost:8000/students/')
+             .then((response) => {
+               commit('setUsers', response.data)
+               resolve();
+             })
+             .catch(() => {
+               console.log("Blad pobierania userow");
+               reject();
+             })
+      })
+    },
+
     getAllGroups ({commit}, payload) {
       console.log("Wysylam zadanie wyswietlenia grup!")
 

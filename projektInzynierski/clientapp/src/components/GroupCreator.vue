@@ -77,7 +77,7 @@ export default {
     },
 
     created() {
-        this.$store.dispatch('getAllUsers').then(() => {
+        this.$store.dispatch('getAllStudents').then(() => {
             console.log("Pobrano userow!")
         })
         .catch(() => {

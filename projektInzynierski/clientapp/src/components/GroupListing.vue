@@ -34,12 +34,13 @@ export default {
       this.$store.dispatch('getAllGroups').then(
         () => { 
           this.groups = this.$store.state.groups
-          }
+        }
       )
       .catch(
         () => { 
           console.log("Nie udalo sie pobrac grup")
-          alert("Nie udalo sie zwrocic grup!")}
+          alert("Nie udalo sie zwrocic grup!")
+        }
       )
     }
     
