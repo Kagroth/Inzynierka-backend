@@ -24,16 +24,42 @@ class UserViewSet(viewsets.ModelViewSet):
     # aktualnie domyslnie tworzony jest student
     def create(self, request):
         data = request.data
-        userType = UserType.objects.get(name="Student")
-        user = User.objects.create_user(username=data['username'],
+        userType = None
+        user = None
+
+        if data['userType'] == "Student" or data['userType'] == "Teacher": 
+            userType = UserType.objects.get(name=data['userType'])
+        else:
+            return Response({"message": "Nie udalo sie utworzyc uzytkownika danego typu"})
+
+        try:
+            if User.objects.filter(username=data['username']).exists():
+                print("Uzytkownik o podanej nazwie juz istnieje")
+                return Response({"message": "Uzytkownik o podanej nazwie juz istnieje"})
+            
+            if User.objects.filter(email=data['email']).exists():
+                print("Ten email jest juz zajety")
+                return Response({"message": "Ten email jest juz zajety"})
+
+            user = User.objects.create_user(username=data['username'],
                                         first_name=data['firstname'],
                                         last_name=data['lastname'],
                                         email=data['email'],
                                         password=data['password'])
-        user.save()
-        profile = Profile.objects.create(user=user, userType=userType)
-        profile.save()
-        return Response({"message": "Dupa"})
+            user.save()
+        except Exception as e:
+            print("Nie udalo się utworzyć obiektu typu User", e)
+            return Response({"message": "Blad serwera przy tworzeniu konta"})
+
+        try: 
+            profile = Profile.objects.create(user=user, userType=userType)
+            profile.save()
+        except:
+            print("Nie udalo sie utworzyc obiektu typu Profile")
+            return Response({"message": "Blad serwera przy tworzeniu konta"})
+
+        print("Konto zostalo utworzone")
+        return Response({"message": "Konto zostało utworzone"})
 
 class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)

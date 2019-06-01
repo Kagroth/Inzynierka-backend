@@ -52,7 +52,7 @@ export default new Vuex.Store({
       console.log("Wysylam request rejestracji")
 
       axios.post("http://localhost:8000/users/", payload)
-           .then(response => console.log("Sukces" + response))
+           .then(response => console.log(response.data))
            .catch(error => console.log(error.response))
     },
 

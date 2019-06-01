@@ -16,6 +16,10 @@
       <br>
       <input type="password" placeholder="Powtorz haslo" v-model="form.passwordRepeat">
       <br>
+      <select v-model="form.userType">
+        <option>Student</option>        
+        <option>Nauczyciel</option>
+      </select><br>
       <input type="submit" value="Zarejestruj" @click="registerUser">
     </form>
   </div>
@@ -31,7 +35,8 @@ export default {
         username: "",
         email: "",
         password: "",
-        passwordRepeat: ""
+        passwordRepeat: "",
+        userType: ""
       }
     };
   },
@@ -40,13 +45,20 @@ export default {
     registerUser(event) {
       event.preventDefault();
 
-      if(this.form.password !== this.form.passwordRepeat) {
-        alert("Hasla sie roznia!")
-        return;
+      for(let field in this.form) {
+        if(this.form[field] === "") {
+          alert("Niepodano wszystkich danych!")
+          return
+        }
       }
 
-      console.log("Username in component: " + this.form.username);
-      this.$store.dispatch("createUser", this.form);
+      if(this.form.password !== this.form.passwordRepeat) {
+        alert("Hasla sie roznia!")
+        return
+      }
+
+      console.log("Username in component: " + this.form.username)
+      this.$store.dispatch("createUser", this.form)
     }
   }
 };
