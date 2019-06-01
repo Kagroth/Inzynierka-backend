@@ -12,10 +12,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 
-# Create your views here.
-def index(request):
-    return HttpResponse("Test")
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -72,10 +68,9 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-
-    #queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
+    # zdefiniowanie zbioru grup na podstawie rodzaju użytkownika, który żąda o dane
     def get_queryset(self):
         queryset = None
         profile = Profile.objects.get(user=self.request.user)
@@ -87,36 +82,25 @@ class GroupViewSet(viewsets.ModelViewSet):
         
         return queryset
 
+    # tworzenie nowej grupy
     def create(self, request):
         data = request.data['params']
         
-        newGroup = Group.objects.create(name=data['groupName'])
+        if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
+            print("Juz posiadasz grupe o takiej nazwie!")
+            return Response({"message": "Juz posiadasz grupe o takiej nazwie!"})
+        
+        newGroup = None
+        
+        try:
+            newGroup = Group.objects.create(name=data['groupName'], owner=request.user)
 
-        for userToAddToGroup in data['selectedUsers']:
-            user = User.objects.get(username=userToAddToGroup['username'])
-            newGroup.users.add(user)
+            for userToAddToGroup in data['selectedUsers']:
+                user = User.objects.get(username=userToAddToGroup['username'])
+                newGroup.users.add(user)
+            newGroup.save()
+        except:
+            print("Nastąpił błąd podczas tworzenia grupy")
+            return Response({"message": "Nastąpił błąd podczas tworzenia grupy"})
 
-        return Response({"message": "sukces"})
-    
-'''
-class ListUsers(APIView):
-    permission_classes = (AllowAny,)
-
-    def get(self, request):
-        usersSet = User.objects.all()
-        # tlumaczenie obiektow na dict
-        usersSetSerialized = UserSerializer(usersSet, many=True)
-        # konwersja dict na json
-        #usersSetJson = JSONRenderer().render(usersSetSerialized.data)
-
-        return Response(usersSetSerialized.data)
-
-class ListGroup(APIView):
-    permission_classes = (AllowAny,)
-
-    def get(self, request):
-        groupSet = Group.objects.all()
-        groupSetSerialized = GroupSerializer(groupSet, many=True)
-
-        return Response(groupSetSerialized.data)
-'''
+        return Response({"message": "Grupa została utworzona"})

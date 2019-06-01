@@ -46,9 +46,6 @@ export default {
                 if(user.username === filteredParam) {
                     return user;
                 }
-                else {
-                    console.log("Dupa")
-                }
             })
 
             console.log(userToAdd[0])
@@ -63,11 +60,19 @@ export default {
         createGroup(event) {
             event.preventDefault();
             
+            if(this.form.groupName === "") {
+                alert("Nie podano nazwy grupy!")
+                return
+            }
+
             this.$store.dispatch('createGroup', this.form).then(
-                () => {
-                    console.log("Grupa zostala utworzona!")
-                    alert("Utworzono grupe")
-                    this.$router.push('/groups')
+                (response) => {    
+                    let message = response.data.message       
+                    alert(message)
+
+                    if(message === "Grupa została utworzona")
+                        this.$router.push('/groups')
+
                 })
                 .catch(() => {
                     console.log("Nie udalo sie utworzyc grupy")
