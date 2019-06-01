@@ -44,8 +44,9 @@ class Task(models.Model):
 
 class Group(models.Model):
     name = models.CharField(max_length=32)
-    users = models.ManyToManyField(User, blank=True, null=True)
-    tasks = models.ManyToManyField(Task, blank=True, null=True)
+    owner = models.ForeignKey(User, related_name="owner", blank=True, null=True, on_delete=models.CASCADE)
+    users = models.ManyToManyField(User, related_name="members", blank=True)
+    tasks = models.ManyToManyField(Task, related_name="tasks", blank=True)
 
     def __str__(self):
         return self.name
