@@ -144,6 +144,24 @@ export default new Vuex.Store({
             reject(error)
           })
       })
+    },
+
+    deleteGroup({commit}, pk) {
+      return new Promise((resolve, reject) => {
+        let authHeader = "Bearer " + this.state.token;
+
+        axios.delete("http://localhost:8000/groups/" + pk,
+          {headers: {
+          'Authorization': authHeader
+        }})
+          .then((response) => {
+            console.log(response)
+            resolve(response)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      })
     }
   }
 })

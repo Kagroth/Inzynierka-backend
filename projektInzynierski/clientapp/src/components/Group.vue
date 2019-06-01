@@ -1,7 +1,7 @@
 <template>
   <div>
     <h3>{{ group.name }}</h3>
-    <span>Usuń</span>
+    <span @click="deleteGroup">Usuń</span>
     <ol>
       <li :key="user" v-for="user in group.users">
         <p>Imie i nazwisko: {{user.first_name}} {{ user.last_name}}</p>
@@ -14,7 +14,17 @@
 
 <script>
 export default {
-  methods: {},
+  methods: {
+    deleteGroup() {
+      let confirmation = confirm("Czy na pewno chcesz usunąć grupę?")
+
+      if(confirmation) {
+        console.log(this.group)
+        this.$store.dispatch('deleteGroup', this.group.pk)
+        //this.$router.push("/groups")
+      }
+    }
+  },
 
   computed: {
     group() {

@@ -34,7 +34,8 @@ export default new Router({
       component: Group
     },
     {
-      path: '/groups/new',
+      path: '/newGroup',
+      name: 'GroupCreator',
       component: GroupCreator
     }
   ],

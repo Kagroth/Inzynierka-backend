@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p><router-link to="/groups/new">Utwórz grupe</router-link></p>
+    <p><router-link to="/newGroup">Utwórz grupe</router-link></p>
     <h2>Grupy:</h2>
     <ul>
       <li :key="group" v-for="group in groups"> 
