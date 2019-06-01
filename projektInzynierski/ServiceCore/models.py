@@ -21,10 +21,11 @@ class Profile(models.Model):
         return self.user.username + " - " + self.userType.name
 
 class Exercise(models.Model):
+    author = models.ForeignKey(User, related_name="exercises", blank=True, null=True, on_delete=models.CASCADE)
     title = models.CharField(max_length=128)
     language = models.CharField(max_length=32)
-    Content = models.TextField()
-    Level = models.IntegerField()
+    content = models.TextField()
+    level = models.IntegerField()
 
 class UnitTest(models.Model):
     pathToFile = models.FilePathField()

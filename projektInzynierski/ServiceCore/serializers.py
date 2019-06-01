@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType
+from ServiceCore.models import Group, Profile, UserType, Exercise
 
 # UserType model serializer
 class UserTypeSerializer(serializers.ModelSerializer):
@@ -36,3 +36,9 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('pk', 'name', 'users',)
+
+class ExerciseSerializer(serializers.ModelSerializer):
+    author = UserSerializer()
+    class Meta:
+        model = Exercise
+        fields = ('pk', 'author', 'title', 'language', 'content', 'level')
