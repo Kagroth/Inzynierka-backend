@@ -6,6 +6,9 @@ import RegisterForm from '@/components/RegisterForm'
 import GroupListing from '@/components/GroupListing'
 import GroupCreator from '@/components/GroupCreator'
 import Group from '@/components/Group'
+import TaskManager from '@/components/TaskManager'
+import ExerciseListing from '@/components/ExerciseListing'
+import TestListing from '@/components/TestListing'
 
 Vue.use(Router)
 
@@ -37,6 +40,21 @@ export default new Router({
       path: '/newGroup',
       name: 'GroupCreator',
       component: GroupCreator
+    },
+    {
+      path: '/tasks',
+      name: 'MyTasks',
+      component: TaskManager,
+      children: [
+        {
+          path: 'exercises',
+          component: ExerciseListing
+        },
+        {
+          path: 'tests',
+          component: TestListing
+        }
+      ]
     }
   ],
   mode: 'history'
