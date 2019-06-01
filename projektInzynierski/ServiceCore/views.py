@@ -4,7 +4,7 @@ from django.http.response import HttpResponse
 from django.contrib.auth.models import User
 from ServiceCore.models import Group, Profile, UserType
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -61,11 +61,31 @@ class UserViewSet(viewsets.ModelViewSet):
         print("Konto zostalo utworzone")
         return Response({"message": "Konto zostało utworzone"})
 
+class StudentViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        studentType = UserType.objects.get(name="Student")
+        queryset = User.objects.filter(profile__userType=studentType)
+        return queryset
+
+
 class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
-    queryset = Group.objects.all()
+    #queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+    def get_queryset(self):
+        queryset = None
+        profile = Profile.objects.get(user=self.request.user)
+
+        if profile.userType.name == "Student":
+            queryset = self.request.user.membershipGroups.all()
+        else:
+            queryset = self.request.user.group.all()
+        
+        return queryset
 
     def create(self, request):
         data = request.data['params']
