@@ -138,10 +138,10 @@ export default new Vuex.Store({
           'Authorization': authHeader
         }})
           .then((response) => {
-            resolve()
+            resolve(response)
           })
           .catch((error) => {
-            reject()
+            reject(error)
           })
       })
     }
