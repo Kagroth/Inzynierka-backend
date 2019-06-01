@@ -6,8 +6,10 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    token: localStorage.getItem('token'),
-    isLogged: (localStorage.getItem('token') !== null),
+    token: "",
+    isLogged: "",
+    
+    username: "",
 
     groups: [],
     users: []
@@ -15,6 +17,14 @@ export default new Vuex.Store({
   },
 
   mutations: {
+    init (state) {
+      state.token = localStorage.getItem('token'),
+      state.isLogged = (localStorage.getItem('token') !== "null"
+                        && localStorage.getItem('token') !== undefined)
+      state.username = localStorage.getItem('username') || ""
+      
+    },
+
     setToken (state, payload) {
       localStorage.setItem('token', payload.token);
       state.token = localStorage.getItem('token');
