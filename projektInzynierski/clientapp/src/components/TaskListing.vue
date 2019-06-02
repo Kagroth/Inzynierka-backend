@@ -3,7 +3,10 @@
         <span><router-link to="/tasks/">Utwórz zadanie</router-link></span><br><br>
         Zadania:
         <ul>
-            <li v-for="task in tasks" :key="task"> {{ task }}  - <span @click="showTaskDetails(task)">Podgląd</span></li>
+            <li v-for="task in tasks" :key="task"> 
+                {{ task.pk }} - {{ task.taskType.name  }}  - 
+                <span @click="showTaskDetails(task)">Podgląd</span>
+            </li>
         </ul>
     </div>    
 </template>

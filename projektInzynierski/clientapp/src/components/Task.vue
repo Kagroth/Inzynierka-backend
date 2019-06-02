@@ -1,11 +1,6 @@
 <template>
     <div>
-        Przykladowy task
-        <!--
-        <h3>{{ exercise.title }}</h3>
-        <p> Technologia - {{ exercise.language }}</p>
-        <p> Poziom zaawansowania - {{ exercise.level }}</p>
-        <p> Treść: <br> {{ exercise.content}}</p>-->
+        {{ task }}
     </div>
 </template>
 <script>

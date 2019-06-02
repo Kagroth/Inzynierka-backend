@@ -47,6 +47,7 @@ class TaskType(models.Model):
 class Task(models.Model):
     author = models.ForeignKey(User, related_name="my_tasks", blank=True, null=True, on_delete=models.CASCADE)
     taskType = models.ForeignKey(TaskType, null=True, on_delete=models.CASCADE)
+    title = models.CharField(max_length=64, blank=True, null=True)
     exercise = models.ForeignKey(Exercise, null=True, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, blank=True, null=True, on_delete=models.CASCADE)
     isActive = models.BooleanField(default=True)
