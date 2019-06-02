@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -142,3 +142,20 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
 
         return Response({"message": "Utworzono Exercise"})
+
+class TaskViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TaskSerializer
+
+    def get_queryset(self):
+        queryset = None
+        print(self.request.user)
+        profile = Profile.objects.get(user=self.request.user)
+
+        if profile.userType.name == "Student":
+            queryset = Task.objects.all()
+        else:
+            queryset = self.request.user.my_tasks.all()
+        
+        return queryset
+

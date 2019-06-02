@@ -13,6 +13,7 @@ router.register('users', views.UserViewSet)
 router.register('students', views.StudentViewSet, basename="Students")
 router.register('groups', views.GroupViewSet, basename="Groups")
 router.register('exercises', views.ExerciseViewSet, basename="Exercises")
+router.register('tasks', views.TaskViewSet, basename="Tasks")
 
 urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
