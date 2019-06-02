@@ -27,6 +27,9 @@ class Exercise(models.Model):
     content = models.TextField()
     level = models.IntegerField()
 
+    def __str__(self):
+        return self.title + " - " + self.language + " - " + self.author.username
+
 class UnitTest(models.Model):
     pathToFile = models.FilePathField()
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
