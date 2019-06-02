@@ -47,7 +47,7 @@ export default {
 
       for(let field in this.form) {
         if(this.form[field] === "") {
-          alert("Niepodano wszystkich danych!")
+          alert("Nie podano wszystkich danych!")
           return
         }
       }
