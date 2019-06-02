@@ -3,7 +3,7 @@
         <span><router-link to="/tasks/newExercise">Utwórz ćwiczenie</router-link></span><br><br>
         Ćwiczenia:
         <ul>
-            <li v-for="exercise in exercises" :key="exercise"> {{ exercise.title }}  - <span>Podgląd</span></li>
+            <li v-for="exercise in exercises" :key="exercise"> {{ exercise.title }}  - <span @click="showExerciseDetails(exercise)">Podgląd</span></li>
         </ul>
     </div>    
 </template>
@@ -12,6 +12,12 @@
 export default {
     created() {
         this.$store.dispatch('getAllExercises')
+    },
+
+    methods: {
+        showExerciseDetails(exercise) {
+            this.$router.push({name: 'ExerciseDetails', params: {pk: exercise.pk}})
+        }    
     },
 
     computed: {
