@@ -187,6 +187,25 @@ export default new Vuex.Store({
                reject();
              })
       })
+    },
+
+    createExercise({commit}, payload) {
+      return new Promise((resolve, reject) => {
+        let authHeader = "Bearer " + this.state.token;
+
+        axios.post("http://localhost:8000/exercises/", {
+          params: payload},
+          {headers: {
+          'Authorization': authHeader
+        }})
+          .then((response) => {
+            console.log(response.data)
+            resolve(response)
+          })
+          .catch((error) => {
+            reject(error)
+          })
+      })
     }
   }
 })

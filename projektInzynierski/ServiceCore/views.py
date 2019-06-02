@@ -121,3 +121,24 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             queryset = self.request.user.exercises.all()
         
         return queryset
+    
+    def create(self, request):
+        data = request.data['params']
+        print(data)
+        newExercise = None
+
+        if not data['level'].isdigit() or not data['level'] in ['1', '2', '3']:
+            return Response({"message": "Podano niepoprawny poziom"})
+
+        try:
+            newExercise = Exercise.objects.create(author=request.user,
+                                                  title=data['title'],
+                                                  language=data['language'],
+                                                  content=data['content'],
+                                                  level=data['level'])
+            newExercise.save()
+        except:
+            print("Nie udalo sie utworzyc obiektu Exercise")
+            return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
+
+        return Response({"message": "Utworzono Exercise"})
