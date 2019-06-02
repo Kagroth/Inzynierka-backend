@@ -16,7 +16,7 @@ export default {
 
     methods: {
         showTaskDetails(task) {
-            //this.$router.push({name: 'ExerciseDetails', params: {pk: exercise.pk}})
+            this.$router.push({name: 'TaskDetails', params: {pk: task.pk}})
         }    
     },
 

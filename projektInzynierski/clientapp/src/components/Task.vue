@@ -11,12 +11,11 @@
 <script>
 export default {
     computed: {
-        /*
-        exercise() {
-            let contextExercise = this.$store.state.exercises.filter(exercise => exercise.pk === this.$route.params.pk)
+        task() {
+            let contextTask = this.$store.state.tasks.filter(task => task.pk === this.$route.params.pk)
             // filter zwraca tablicę, dlatego trzeba zwrócić pierwszy obiekt explicit
-            return contextExercise[0]    
-        }*/
+            return contextTask[0]    
+        }
     }
 }
 </script>
