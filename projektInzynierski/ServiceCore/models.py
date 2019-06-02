@@ -53,7 +53,7 @@ class Task(models.Model):
     isActive = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.author.username + " - " + self.taskType.name
+        return self.author.username + " - " + self.taskType.name + " - " + self.title
 
 class Group(models.Model):
     name = models.CharField(max_length=32)
