@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType
 
 from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer
 
@@ -158,4 +158,33 @@ class TaskViewSet(viewsets.ModelViewSet):
             queryset = self.request.user.my_tasks.all()
         
         return queryset
+    
+    def create(self, request):
+        data = request.data['params']
+        print(data)
+        taskType = None
+        newTask = None
+
+        try:
+            taskType = TaskType.objects.get(name=data['taskType'])
+            exercise = Exercise.objects.get(pk=data['exercise'])
+            groups = []
+
+            for groupElem in data['groups']:
+                group = Group.objects.get(pk=groupElem['pk'])
+                groups.append(group)
+
+            newTask = Task.objects.create(taskType=taskType, exercise=exercise, title=data['title'], author=request.user)
+            newTask.save()
+
+            for group in groups:
+                newTask.assignedTo.add(group)
+            
+            newTask.save()
+        except Exception as e:
+            print("Nie udalo sie utworzyc zadania")
+            print(e)
+            return Response({"message": "Nie udalo sie utworzyc zadania"})
+
+        return Response({"message": "Zadanie zostalo utworzone"})
 

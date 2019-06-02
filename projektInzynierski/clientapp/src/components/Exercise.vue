@@ -8,9 +8,24 @@
 </template>
 <script>
 export default {
+    props: ['pk'],
+
     computed: {
         exercise() {
-            let contextExercise = this.$store.state.exercises.filter(exercise => exercise.pk === this.$route.params.pk)
+            /*
+                jeżeli prop 'pk' jest zbindowany, wtedy wyszukaj exercise o zbindowanym pk
+                w przeciwnym przypadku wyszukaj exercise po parametrze pk z URL 
+            */
+            let filterParam;
+
+            if(this.pk === null || this.pk === undefined) {
+                filterParam = this.$route.params.pk
+            }
+            else {
+                filterParam = this.pk
+            }
+
+            let contextExercise = this.$store.state.exercises.filter(exercise => exercise.pk === filterParam)
             // filter zwraca tablicę, dlatego trzeba zwrócić pierwszy obiekt explicit
             return contextExercise[0]    
         }
