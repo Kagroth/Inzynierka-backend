@@ -1,5 +1,40 @@
 <template>
   <div>
+    <v-container>
+      <v-layout row wrap>
+        <v-flex md6 offset-md2>
+          <h3> {{ group.name }}</h3>
+        </v-flex>
+        <v-flex md2>
+          <v-btn @click="deleteGroup" color="error" small>
+            Usuń grupę
+          </v-btn>
+        </v-flex>
+      </v-layout>
+      <v-divider></v-divider>
+      <v-layout mt-2>
+        <v-flex md6 offset-md2>
+          <h3>Członkowie:</h3>
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap>
+        <v-flex md6 offset-md2>
+          Imię i nazwisko
+        </v-flex>
+        <v-flex md2>
+          Email
+        </v-flex>
+      </v-layout>
+      <v-layout row wrap v-for="user in group.users" :key="user">
+        <v-flex md6 offset-md2>
+          {{user.first_name}} {{ user.last_name}}
+        </v-flex>
+        <v-flex md2>
+          {{ user.email }}
+        </v-flex>
+      </v-layout>
+    </v-container>
+    <!--
     <h3>{{ group.name }}</h3>
     <span @click="deleteGroup">Usuń</span>
     <ol>
@@ -9,6 +44,7 @@
         <p>Nazwa użytkownika: {{user.username}}</p>
       </li>
     </ol>
+    -->
   </div>
 </template>
 
