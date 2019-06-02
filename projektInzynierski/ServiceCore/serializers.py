@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType
 
 # UserType model serializer
 class UserTypeSerializer(serializers.ModelSerializer):
@@ -43,9 +43,16 @@ class ExerciseSerializer(serializers.ModelSerializer):
         model = Exercise
         fields = ('pk', 'author', 'title', 'language', 'content', 'level')
     
+class TaskTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaskType
+        fields = ('pk', 'name')
+
+
 class TaskSerializer(serializers.ModelSerializer):
     author = UserSerializer()
+    taskType = TaskTypeSerializer()
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'isActive')
+        fields = ('pk', 'author', 'taskType', 'isActive')
