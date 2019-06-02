@@ -42,6 +42,7 @@ class TaskType(models.Model):
     name = models.CharField(max_length=32)
 
 class Task(models.Model):
+    author = models.ForeignKey(User, related_name="my_tasks", blank=True, null=True, on_delete=models.CASCADE)
     taskType = models.ForeignKey(TaskType, on_delete=models.CASCADE)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
