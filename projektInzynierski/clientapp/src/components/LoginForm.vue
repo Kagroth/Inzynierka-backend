@@ -10,7 +10,7 @@
             <v-text-field :type="text" v-model="form.username" label="Nazwa użytkownika" required></v-text-field>
           </v-flex>
           <v-flex xs12 md4 offset-md4>
-            <v-text-field :type="password" v-model="form.password" label="Hasło" requried></v-text-field>
+            <v-text-field type="password" v-model="form.password" label="Hasło" requried></v-text-field>
           </v-flex>
           <v-flex xs12 md4 offset-md4>
             <v-btn color="primary" @click="loginUser">Zaloguj</v-btn>
