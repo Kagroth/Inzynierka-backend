@@ -20,8 +20,9 @@ export default {
 
       if(confirmation) {
         console.log(this.group)
-        this.$store.dispatch('deleteGroup', this.group.pk)
-        //this.$router.push("/groups")
+        this.$store.dispatch('deleteGroup', this.group.pk).then(() => {
+          this.$router.push("/groups")
+        })        
       }
     }
   },
