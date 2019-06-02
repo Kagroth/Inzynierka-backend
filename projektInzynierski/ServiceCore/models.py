@@ -41,12 +41,18 @@ class Test(models.Model):
 class TaskType(models.Model):
     name = models.CharField(max_length=32)
 
+    def __str__(self):
+        return self.name
+
 class Task(models.Model):
     author = models.ForeignKey(User, related_name="my_tasks", blank=True, null=True, on_delete=models.CASCADE)
-    taskType = models.ForeignKey(TaskType, blank=True, null=True, on_delete=models.CASCADE)
-    exercise = models.ForeignKey(Exercise, blank=True, null=True, on_delete=models.CASCADE)
+    taskType = models.ForeignKey(TaskType, null=True, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, null=True, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, blank=True, null=True, on_delete=models.CASCADE)
     isActive = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.author.username + " - " + self.taskType.name
 
 class Group(models.Model):
     name = models.CharField(max_length=32)
