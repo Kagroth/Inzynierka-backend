@@ -45,6 +45,7 @@ class Task(models.Model):
     taskType = models.ForeignKey(TaskType, on_delete=models.CASCADE)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    isActive = models.BooleanField(default=True)
 
 class Group(models.Model):
     name = models.CharField(max_length=32)
