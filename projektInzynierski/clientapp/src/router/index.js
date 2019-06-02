@@ -7,6 +7,7 @@ import GroupListing from '@/components/GroupListing'
 import GroupCreator from '@/components/GroupCreator'
 import Group from '@/components/Group'
 import TaskManager from '@/components/TaskManager'
+import TaskListing from '@/components/TaskListing'
 import ExerciseListing from '@/components/ExerciseListing'
 import ExerciseCreator from '@/components/ExerciseCreator'
 import Exercise from '@/components/Exercise'
@@ -48,6 +49,11 @@ export default new Router({
       name: 'MyTasks',
       component: TaskManager,
       children: [
+        {
+          path: 'tasks',
+          name: 'TaskListing',
+          component: TaskListing,
+        },
         {
           path: 'exercises',
           component: ExerciseListing

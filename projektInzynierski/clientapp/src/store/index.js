@@ -13,7 +13,8 @@ export default new Vuex.Store({
 
     groups: [],
     users: [],
-    exercises: []
+    exercises: [],
+    tasks: []
 
   },
 
@@ -50,6 +51,11 @@ export default new Vuex.Store({
     setExercises(state, payload) {
       console.log(payload)
       state.exercises = payload
+    },
+
+    setTasks(state, payload) {
+      console.log(payload)
+      state.tasks = payload
     }
   },
 
@@ -184,6 +190,25 @@ export default new Vuex.Store({
              })
              .catch(() => {
                console.log("Blad pobierania cwiczen");
+               reject();
+             })
+      })
+    },
+
+    getAllTasks({commit}) {
+      console.log("Wysylam zadanie pobrania zadania!");
+
+      return new Promise((resolve, reject) => {
+        let authHeader = "Bearer " + this.state.token;
+        axios.get('http://localhost:8000/tasks/', {headers: {
+          'Authorization': authHeader
+        }})
+             .then((response) => {
+               commit('setTasks', response.data)
+               resolve();
+             })
+             .catch(() => {
+               console.log("Blad pobierania zadan");
                reject();
              })
       })
