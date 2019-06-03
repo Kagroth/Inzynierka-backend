@@ -10,6 +10,7 @@ export default new Vuex.Store({
     isLogged: "",
     
     username: "",
+    profile: {},
 
     groups: [],
     users: [],
@@ -28,9 +29,14 @@ export default new Vuex.Store({
     },
 
     setToken (state, payload) {
-      localStorage.setItem('token', payload.token);
-      state.token = localStorage.getItem('token');
+      localStorage.setItem('token', payload.token)
+      state.token = localStorage.getItem('token')
       state.isLogged = (localStorage.getItem('token') != null)
+      state.username = payload.username
+    },
+
+    setProfile (state, payload) {
+      state.profile = payload
     },
 
     setUsers (state, payload) {
@@ -43,9 +49,10 @@ export default new Vuex.Store({
     },
 
     logout (state) {
-      localStorage.setItem('token', null);
-      state.token = null;
-      state.isLogged = false;
+      localStorage.setItem('token', null)
+      state.token = null
+      state.isLogged = false
+      state.username = null
     },
 
     setExercises(state, payload) {
@@ -68,7 +75,7 @@ export default new Vuex.Store({
            .catch(error => console.log(error.response))
     },
 
-    loginUser ({commit}, payload) {
+    loginUser ({commit, dispatch}, payload) {
       console.log("Wysylam request logowania");
 
       return new Promise((resolve, reject) => {
@@ -76,9 +83,11 @@ export default new Vuex.Store({
            .then(response => {
              console.log(response.data.access);
              commit('setToken', {
-               token: response.data.access
+               token: response.data.access,
+               username: payload.username
              });
-             
+             dispatch('setLoggedUserData')
+
              resolve()
            })
            .catch(error => {            
@@ -87,6 +96,23 @@ export default new Vuex.Store({
            })
       }
       )      
+    },
+
+    setLoggedUserData({commit, state}) {
+      console.log("Wysylam request logowania");
+
+      return new Promise((resolve, reject) => {
+        axios.get("http://localhost:8000/profile/" + state.username)
+           .then(response => {
+             console.log(response.data);
+             commit('setProfile', response.data)
+             resolve()
+           })
+           .catch(error => {            
+             console.log(error.response);
+             reject()
+           })
+      })
     },
 
     getAllUsers({commit}, payload) {

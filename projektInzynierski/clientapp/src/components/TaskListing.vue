@@ -5,7 +5,7 @@
         <v-flex md6 offset-md2>
           <h2>Moje zadania</h2>
         </v-flex>
-        <v-flex md2>
+        <v-flex md2 v-if="userType.name === 'Teacher'">
           <v-btn to="/tasks/newTask" color="success" small>Utwórz zadanie</v-btn>
         </v-flex>
       </v-layout>
@@ -40,18 +40,22 @@
 <script>
 export default {
   created() {
-    this.$store.dispatch("getAllTasks");
+    this.$store.dispatch("getAllTasks")
   },
 
   methods: {
     showTaskDetails(task) {
-      this.$router.push({ name: "TaskDetails", params: { pk: task.pk } });
+      this.$router.push({ name: "TaskDetails", params: { pk: task.pk } })
     }
   },
 
   computed: {
     tasks() {
-      return this.$store.state.tasks;
+      return this.$store.state.tasks
+    },
+
+    userType() {
+      return this.$store.state.profile.userType
     }
   }
 };

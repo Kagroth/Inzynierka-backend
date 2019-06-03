@@ -6,10 +6,10 @@
                 <v-flex md2>
                     <v-btn to="/tasks/tasks">Zadania</v-btn>
                 </v-flex>
-                <v-flex md2>
+                <v-flex md2 v-if="userType.name === 'Teacher'">
                     <v-btn to="/tasks/exercises">Ćwiczenia</v-btn>
                 </v-flex>
-                <v-flex md2>
+                <v-flex md2 v-if="userType.name === 'Teacher'">
                     <v-btn to="/tasks/tests" disabled>Kolokwia</v-btn>
                 </v-flex>
             </v-layout>
@@ -28,7 +28,11 @@
 
 <script>
 export default {
-    
+    computed: {
+        userType() {            
+            return this.$store.state.profile.userType
+        }
+    }
 }
 </script>
 

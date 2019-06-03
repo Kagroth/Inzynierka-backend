@@ -12,6 +12,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 
+class ProfileView(APIView):
+    def get(self, request, username):
+        print(username)
+        profile = Profile.objects.get(user__username=username)
+        profileSerializer = ProfileSerializer(profile)
+        return Response(profileSerializer.data)
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
