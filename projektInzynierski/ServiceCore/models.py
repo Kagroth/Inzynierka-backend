@@ -9,6 +9,13 @@ class Language(models.Model):
     def __str__(self):
         return self.name
 
+
+class Level(models.Model):
+    name = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.name
+
 class UserType(models.Model):
     name = models.CharField(max_length=32)
 
@@ -37,7 +44,7 @@ class Exercise(models.Model):
     title = models.CharField(max_length=128)
     language = models.ForeignKey(Language, related_name="language", blank=True, null=True, on_delete=models.CASCADE)
     content = models.TextField()
-    level = models.IntegerField()
+    level = models.ForeignKey(Level, related_name="level", blank=True, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title + " - " + self.language + " - " + self.author.username
