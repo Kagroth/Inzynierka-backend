@@ -4,6 +4,8 @@ from ServiceCore.models import *
 # Register your models here.
 # Modele w panelu administratora
 admin.site.register(UserType)
+admin.site.register(Language)
+admin.site.register(Level)
 admin.site.register(Profile)
 admin.site.register(Exercise)
 admin.site.register(UnitTest)
