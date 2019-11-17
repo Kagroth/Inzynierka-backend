@@ -2,15 +2,28 @@ from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
+
+
+class LevelView(APIView):
+    def get(self, request):
+        levels = Level.objects.all()
+        levelsSerializer = LevelSerializer(levels, many=True)
+        return Response(levelsSerializer.data)
+
+class LanguageView(APIView):
+    def get(self, request):
+        languages = Language.objects.all()
+        languagesSerializer = LanguageSerializer(languages, many=True)
+        return Response(languagesSerializer.data)
 
 class ProfileView(APIView):
     def get(self, request, username):
@@ -91,7 +104,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     # tworzenie nowej grupy
     def create(self, request):
-        data = request.data['params']
+        data = request.data
         
         if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
             print("Juz posiadasz grupe o takiej nazwie!")
@@ -130,19 +143,35 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         return queryset
     
     def create(self, request):
-        data = request.data['params']
+        print(request.data)
+        data = request.data
         print(data)
         newExercise = None
+        level = None
+        language = None
 
-        if not data['level'].isdigit() or not data['level'] in ['1', '2', '3']:
+        levels = Level.objects.all()
+        languages = Language.objects.all()
+
+        print()
+        if not levels.filter(name=data['level']['name']).exists():
             return Response({"message": "Podano niepoprawny poziom"})
 
+        if not languages.filter(name=data['language']['name']).exists():
+            return Response({"message": "Podano niepoprawny jezyk programowania"})
+
+        # if not data['level'].isdigit() or not data['level'] in ['1', '2', '3']:
+        #    return Response({"message": "Podano niepoprawny poziom"})
+
         try:
+            level = levels.get(name=data['level']['name'])        
+            language = languages.get(name=data['language']['name'])   
+
             newExercise = Exercise.objects.create(author=request.user,
                                                   title=data['title'],
-                                                  language=data['language'],
+                                                  language=language,
                                                   content=data['content'],
-                                                  level=data['level'])
+                                                  level=level)
             newExercise.save()
         except:
             print("Nie udalo sie utworzyc obiektu Exercise")
