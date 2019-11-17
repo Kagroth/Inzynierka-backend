@@ -1,13 +1,28 @@
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language
+
+# Language model serializer
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+        fields = ('name',)
+
+
+# Level model serializer
+class LevelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Level
+        fields = ('name',)
+
 
 # UserType model serializer
 class UserTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserType
         fields = ('name',)
+
 
 # Profile model serializer
 class ProfileSerializer(serializers.ModelSerializer):
@@ -17,6 +32,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ('userType',)
 
+
 # User model serializer
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
@@ -25,6 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'profile')
     
+
 # ServiceCore Group model serializer 
 class GroupSerializer(serializers.ModelSerializer):
     # SlugRelatedField pozwala na wypisanie polaczonych obiektow w postaci pola slug_field
@@ -37,12 +54,17 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ('pk', 'name', 'users',)
 
+
 class ExerciseSerializer(serializers.ModelSerializer):
     author = UserSerializer()
+    language = LanguageSerializer()
+    level = LevelSerializer()
+
     class Meta:
         model = Exercise
         fields = ('pk', 'author', 'title', 'language', 'content', 'level')
-    
+
+
 class TaskTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskType
