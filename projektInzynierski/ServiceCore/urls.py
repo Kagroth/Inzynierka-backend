@@ -13,6 +13,7 @@ router.register('users', views.UserViewSet)
 router.register('students', views.StudentViewSet, basename="Students")
 router.register('groups', views.GroupViewSet, basename="Groups")
 router.register('exercises', views.ExerciseViewSet, basename="Exercises")
+router.register('tests', views.TestViewSet, basename="Tests")
 router.register('tasks', views.TaskViewSet, basename="Tasks")
 
 urlpatterns = [
