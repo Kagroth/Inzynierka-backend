@@ -47,7 +47,7 @@ class Exercise(models.Model):
     level = models.ForeignKey(Level, related_name="level", blank=True, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title + " - " + self.language + " - " + self.author.username
+        return self.title + " - " + self.language.name + " - " + self.author.username
 
 
 # Klasa reprezentuje test jednostkowy przypisany do konkretnego cwiczenia
