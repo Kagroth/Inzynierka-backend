@@ -236,6 +236,21 @@ class TestViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nastąpił błąd podczas tworzenia testu"})
         
         return Response({"message": "Utworzono Test"})
+    
+    def destroy(self, request, pk=None):
+        if pk is None:
+            return Response({"message": "Nie podano klucza glownego kolokwium do usuniecia"})
+        
+        try:
+            if not Test.objects.filter(pk=pk).exists():
+                return Response({"message": "Takie kolokwium nie istnieje"})
+
+            Test.objects.filter(pk=pk).delete()            
+        except Exception as e:
+            print(e)
+            return Response({"message": "Nie udalo sie usunac kolokwium"})
+        
+        return Response({"message": "Kolokwium zostalo usuniete"})
 
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
