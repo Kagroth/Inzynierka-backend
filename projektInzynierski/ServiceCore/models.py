@@ -62,7 +62,7 @@ class UnitTest(models.Model):
 #   - exercises - cwiczenia tworzace kolokwium 
 class Test(models.Model):
     name = models.CharField(max_length=32)
-    exercises = models.ManyToManyField(Exercise)
+    exercises = models.ManyToManyField(Exercise, related_name="exercises")
 
 # Klasa reprezentuje rodzaj zadania (jest tylko Test lub Exercise)
 #   - name - nazwa rodzaju zadania 
