@@ -206,7 +206,7 @@ class TestViewSet(viewsets.ModelViewSet):
         testToCreate = None
 
         try:
-            testToCreate = Test.objects.create(name=data['name'])
+            testToCreate = Test.objects.create(author=request.user, name=data['name'])
 
             for exerciseToAdd in data['exercises']:
                 exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])

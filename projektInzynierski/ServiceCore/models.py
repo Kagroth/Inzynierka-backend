@@ -61,8 +61,12 @@ class UnitTest(models.Model):
 #   - name - nazwa kolokwium
 #   - exercises - cwiczenia tworzace kolokwium 
 class Test(models.Model):
+    author = models.ForeignKey(User, related_name="tests", blank=True, null=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=32)
     exercises = models.ManyToManyField(Exercise, related_name="exercises")
+
+    def __str__(self):
+        return self.name + " - " + self.author.username
 
 # Klasa reprezentuje rodzaj zadania (jest tylko Test lub Exercise)
 #   - name - nazwa rodzaju zadania 
