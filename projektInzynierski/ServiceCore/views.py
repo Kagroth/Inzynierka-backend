@@ -178,6 +178,23 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
 
         return Response({"message": "Utworzono Exercise"})
+    
+    def destroy(self, request, pk=None):
+        if pk is None:
+            return Response({"message": "Nie podano klucza glownego cwiczenia do usuniecia"})
+        
+        try:
+            if not Exercise.objects.filter(pk=pk).exists():
+                return Response({"message": "Takie cwiczenie nie istnieje"})
+
+            Exercise.objects.filter(pk=pk).delete()            
+        except Exception as e:
+            print(e)
+            return Response({"message": "Nie udalo sie usunac cwiczenia"})
+        
+        return Response({"message": "Cwiczenie zostalo usuniete"})
+
+
 
 
 class TestViewSet(viewsets.ModelViewSet):    
@@ -192,7 +209,7 @@ class TestViewSet(viewsets.ModelViewSet):
         if profile.userType.name == "Student":
             queryset = Test.objects.all()
         else:
-            queryset = Test.objects.all()
+            queryset = self.request.user.tests.all()
         
         return queryset
     
