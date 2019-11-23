@@ -93,7 +93,7 @@ class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('pk', 'name', 'users', 'activeTasks')
+        fields = ('pk', 'name', 'users', 'activeTasks', 'archivedTasks')
 
     def getActiveTasks(self, group):
         activeTasks = group.tasks.filter(isActive=True)

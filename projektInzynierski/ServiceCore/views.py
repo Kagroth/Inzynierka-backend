@@ -4,7 +4,7 @@ from django.http.response import HttpResponse
 from django.contrib.auth.models import User
 from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer, TestSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer, TestSerializer, GroupWithAssignedTasksSerializer, TaskWithAssignedGroupsSerializer
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -88,7 +88,7 @@ class StudentViewSet(viewsets.ModelViewSet):
 
 class GroupViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    serializer_class = GroupSerializer
+    serializer_class = GroupWithAssignedTasksSerializer
 
     # zdefiniowanie zbioru grup na podstawie rodzaju użytkownika, który żąda o dane
     def get_queryset(self):
@@ -254,7 +254,7 @@ class TestViewSet(viewsets.ModelViewSet):
 
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    serializer_class = TaskSerializer
+    serializer_class = TaskWithAssignedGroupsSerializer
 
     def get_queryset(self):
         queryset = None
