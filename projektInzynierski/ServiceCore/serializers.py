@@ -52,7 +52,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('pk', 'name', 'users',)
+        fields = ('pk', 'name', 'users')
 
 
 class ExerciseSerializer(serializers.ModelSerializer):
@@ -80,9 +80,36 @@ class TaskTypeSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     taskType = TaskTypeSerializer()
-    exercise = ExerciseSerializer()
-    assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie
+    exercise = ExerciseSerializer()   
     
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'assignedTo', 'title', 'exercise', 'isActive')
+        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'isActive')
+
+class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
+    users = UserSerializer(many=True)
+    activeTasks = serializers.SerializerMethodField('getActiveTasks') # wyswietla zadania ktore sa przypisane do grup
+    archivedTasks = serializers.SerializerMethodField('getArchivedTasks') # wyswietla zadania nieaktywne juz
+
+    class Meta:
+        model = Group
+        fields = ('pk', 'name', 'users', 'activeTasks')
+
+    def getActiveTasks(self, group):
+        activeTasks = group.tasks.filter(isActive=True)
+        return TaskSerializer(activeTasks, many=True).data
+    
+    def getArchivedTasks(self, group):
+        archivedTasks = group.tasks.filter(isActive=False)
+        return TaskSerializer(archivedTasks, many=True).data
+
+
+class TaskWithAssignedGroupsSerializer(serializers.ModelSerializer):
+    author = UserSerializer()
+    taskType = TaskTypeSerializer()
+    exercise = ExerciseSerializer()   
+    assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
+
+    class Meta:
+        model = Task
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'isActive')
