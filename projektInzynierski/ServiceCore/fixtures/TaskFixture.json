@@ -1,0 +1,14 @@
+[
+    {
+        "model": "ServiceCore.Task",
+        "pk": 1,
+        "fields": {
+            "author": 2,
+            "taskType": 2,
+            "title": "Testowe zadanie",
+            "exercise": 1,
+            "test": null,
+            "isActive": true
+        }
+    }
+]

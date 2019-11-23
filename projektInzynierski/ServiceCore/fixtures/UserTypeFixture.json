@@ -1,0 +1,16 @@
+[
+    {
+        "model": "ServiceCore.UserType",
+        "pk": 1,
+        "fields": {
+            "name": "Teacher"
+        }
+    },
+    {
+        "model": "ServiceCore.UserType",
+        "pk": 2,
+        "fields": {
+            "name": "Student"
+        }
+    }
+]

@@ -1,0 +1,35 @@
+[
+    {
+        "model": "ServiceCore.Exercise",
+        "pk": 1,
+        "fields": {
+            "author": 2,
+            "title": "Przykladowe zadanie z Pythona",
+            "language": 1,
+            "content": "To jest tresc przykladowego cwiczenia z Pythona",
+            "level": 1
+        }
+    },
+    {
+        "model": "ServiceCore.Exercise",
+        "pk": 2,
+        "fields": {
+            "author": 2,
+            "title": "Przykladowe zadanie z JavaScriptu",
+            "language": 2,
+            "content": "To jest tresc przykladowego cwiczenia z JavaScriptu",
+            "level": 1
+        }
+    },
+    {
+        "model": "ServiceCore.Exercise",
+        "pk": 3,
+        "fields": {
+            "author": 2,
+            "title": "Przykladowe zadanie z PHP",
+            "language": 3,
+            "content": "To jest tresc przykladowego cwiczenia z PHP",
+            "level": 1
+        }
+    }
+]

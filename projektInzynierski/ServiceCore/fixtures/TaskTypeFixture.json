@@ -1,0 +1,16 @@
+[
+    {
+        "model": "ServiceCore.TaskType",
+        "pk": 1,
+        "fields": {
+            "name": "Test"
+        }
+    },
+    {
+        "model": "ServiceCore.TaskType",
+        "pk": 2,
+        "fields": {
+            "name": "Exercise"
+        }
+    }
+]

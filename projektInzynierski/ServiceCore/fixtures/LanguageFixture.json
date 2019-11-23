@@ -1,0 +1,23 @@
+[
+    {
+        "model": "ServiceCore.Language",
+        "pk": 1,
+        "fields": {
+            "name": "Python"
+        }
+    },
+    {
+        "model": "ServiceCore.Language",
+        "pk": 2,
+        "fields": {
+            "name": "JavaScript"
+        }
+    },
+    {
+        "model": "ServiceCore.Language",
+        "pk": 3,
+        "fields": {
+            "name": "PHP"
+        }
+    }
+]

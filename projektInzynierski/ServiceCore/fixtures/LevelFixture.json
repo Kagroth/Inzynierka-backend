@@ -1,0 +1,23 @@
+[
+    {
+        "model": "ServiceCore.Level",
+        "pk": 1,
+        "fields": {
+            "name": "Podstawowy"
+        }
+    },
+    {
+        "model": "ServiceCore.Level",
+        "pk": 2,
+        "fields": {
+            "name": "Sredniozaawansowany"
+        }
+    },
+    {
+        "model": "ServiceCore.Level",
+        "pk": 3,
+        "fields": {
+            "name": "Zaawansowany"
+        }
+    }
+]

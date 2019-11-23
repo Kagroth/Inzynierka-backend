@@ -1,0 +1,24 @@
+[
+    {
+        "model": "ServiceCore.Test",
+        "pk": 1,
+        "fields": {
+            "author": 2,
+            "name": "Przykladowe kolokwium",
+            "exercises": [
+                1, 2, 3
+            ]
+        }
+    },
+    {
+        "model": "ServiceCore.Test",
+        "pk": 2,
+        "fields": {
+            "author": 2,
+            "name": "Przykladowe kolokwium - backend",
+            "exercises": [
+                1, 3
+            ]
+        }
+    }
+]
