@@ -195,6 +195,30 @@ class TestViewSet(viewsets.ModelViewSet):
             queryset = Test.objects.all()
         
         return queryset
+    
+    def create(self, request):
+        print(request.data)
+        data = request.data
+        
+        if data['name'] is None or data['exercises'] is None:
+            return Response({"message": "Nie podano wszystkich danych"})
+
+        testToCreate = None
+
+        try:
+            testToCreate = Test.objects.create(name=data['name'])
+
+            for exerciseToAdd in data['exercises']:
+                exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])
+                testToCreate.exercises.add(exercise)
+            
+            testToCreate.save()
+        except Exception as e:
+            print(e)
+            print("Nastąpił błąd podczas tworzenia testu")
+            return Response({"message": "Nastąpił błąd podczas tworzenia testu"})
+        
+        return Response({"message": "Utworzono Test"})
 
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
