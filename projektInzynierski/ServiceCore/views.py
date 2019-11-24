@@ -124,6 +124,35 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nastąpił błąd podczas tworzenia grupy"})
 
         return Response({"message": "Grupa została utworzona"})
+    
+    def update(self, request, pk=None):
+        data = request.data
+
+        if pk is None:
+            return Response({"message": "Nie podano parametru pk"})
+
+        if not Group.objects.filter(name=data['oldName'], owner=request.user).exists():
+            return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"})
+        
+        try:
+            groupToUpdate = Group.objects.get(name=data['oldName'])
+            groupToUpdate.name = data['groupName']
+
+            for userToAddToGroup in data['selectedUsers']:
+                user = User.objects.get(username=userToAddToGroup['username'])
+                groupToUpdate.users.add(user)
+            groupToUpdate.save()
+
+            for userToRemoveFromGroup in data['usersToRemove']:
+                user = User.objects.get(username=userToRemoveFromGroup['username'])
+                groupToUpdate.users.remove(user)
+            groupToUpdate.save()
+        except Exception as e:
+            print(e)
+            return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"})
+        
+        return Response({"message": "Grupa została zaktualizowana"})
+
 
 
 class ExerciseViewSet(viewsets.ModelViewSet):
