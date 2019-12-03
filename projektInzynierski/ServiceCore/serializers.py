@@ -69,7 +69,7 @@ class TestSerializer(serializers.ModelSerializer):
     exercises = ExerciseSerializer(many=True)
     class Meta:
         model = Test
-        fields = ('pk', 'name', 'exercises')
+        fields = ('pk', 'title', 'exercises')
 
 class TaskTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -85,6 +85,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'isActive')
+
 
 class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True)

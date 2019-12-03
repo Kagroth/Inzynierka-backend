@@ -246,13 +246,13 @@ class TestViewSet(viewsets.ModelViewSet):
         print(request.data)
         data = request.data
         
-        if data['name'] is None or data['exercises'] is None:
+        if data['title'] is None or data['exercises'] is None:
             return Response({"message": "Nie podano wszystkich danych"})
 
         testToCreate = None
 
         try:
-            testToCreate = Test.objects.create(author=request.user, name=data['name'])
+            testToCreate = Test.objects.create(author=request.user, title=data['title'])
 
             for exerciseToAdd in data['exercises']:
                 exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])
@@ -298,14 +298,14 @@ class TaskViewSet(viewsets.ModelViewSet):
         return queryset
     
     def create(self, request):
-        data = request.data['params']
+        data = request.data
         print(data)
         taskType = None
         newTask = None
 
-        try:
+        try:            
             taskType = TaskType.objects.get(name=data['taskType'])
-            exercise = Exercise.objects.get(pk=data['exercise'])
+            exercise = Exercise.objects.get(pk=data['exercise']['pk'])
             groups = []
 
             for groupElem in data['groups']:
