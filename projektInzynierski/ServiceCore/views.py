@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from django.http.response import HttpResponse
 
@@ -296,7 +297,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             queryset = self.request.user.my_tasks.all()
         
         return queryset
-    
+
+
     def create(self, request):
         data = request.data
         print(data)
@@ -305,20 +307,65 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         try:            
             taskType = TaskType.objects.get(name=data['taskType'])
-            exercise = Exercise.objects.get(pk=data['exercise']['pk'])
+
+            if taskType.name == 'Test':
+                test = Test.objects.get(pk=data['exercise']['pk'])
+            else:
+                exercise = Exercise.objects.get(pk=data['exercise']['pk'])
             groups = []
 
             for groupElem in data['groups']:
                 group = Group.objects.get(pk=groupElem['pk'])
                 groups.append(group)
 
-            newTask = Task.objects.create(taskType=taskType, exercise=exercise, title=data['title'], author=request.user)
+            newTask = None
+
+            if taskType.name == 'Test':
+                newTask = Task.objects.create(taskType=taskType, test=test, title=data['title'], author=request.user)
+            else:    
+                newTask = Task.objects.create(taskType=taskType, exercise=exercise, title=data['title'], author=request.user)
+
             newTask.save()
 
             for group in groups:
                 newTask.assignedTo.add(group)
             
             newTask.save()
+
+            # tworzenie katalogu w ktorym beda odpowiednie podfoldery z rozwiazaniami
+            cwd = os.getcwd()
+            folderName = newTask.title + '-' + newTask.author.username + '-' + str(newTask.pk)
+            print(folderName)
+            pathToTaskSolutions = os.path.join(cwd, folderName)
+            
+            if not os.path.exists(pathToTaskSolutions):
+                os.mkdir(pathToTaskSolutions)
+            else:
+                print("Utworzono zadanie ale nie udalo sie utworzyc folderu")
+                return Response({"message": "Utworzono zadanie ale nie udalo sie utworzyc folderu"})
+
+            for group in newTask.assignedTo.all():
+                groupName = group.name + '-' + str(group.pk)
+                pathToAssignedGroupSolution = os.path.join(pathToTaskSolutions, groupName)
+
+                if not os.path.exists(pathToAssignedGroupSolution):
+                    os.mkdir(pathToAssignedGroupSolution)
+                else:
+                    print("Nie udalo sie utworzyc folderu dla grupy " + groupName)
+                    break
+
+                for member in group.users.all():
+                    memberName = member.username + '-' + str(member.pk)
+                    pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
+
+                    if not os.path.exists(pathToGroupMemberSolution):
+                        os.mkdir(pathToGroupMemberSolution)
+                    else:
+                        print("Nie udalo sie utworzyc folderu dla uzytkownika " + memberName)
+                        print("w grupie " + groupName)
+                        break
+
+
         except Exception as e:
             print("Nie udalo sie utworzyc zadania")
             print(e)
