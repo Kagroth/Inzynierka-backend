@@ -1,4 +1,6 @@
 import os
+from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup
+
 from django.shortcuts import render
 from django.http.response import HttpResponse
 
@@ -333,38 +335,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             newTask.save()
 
             # tworzenie katalogu w ktorym beda odpowiednie podfoldery z rozwiazaniami
-            cwd = os.getcwd()
-            folderName = newTask.title + '-' + newTask.author.username + '-' + str(newTask.pk)
-            print(folderName)
-            pathToTaskSolutions = os.path.join(cwd, folderName)
-            
-            if not os.path.exists(pathToTaskSolutions):
-                os.mkdir(pathToTaskSolutions)
-            else:
-                print("Utworzono zadanie ale nie udalo sie utworzyc folderu")
-                return Response({"message": "Utworzono zadanie ale nie udalo sie utworzyc folderu"})
-
-            for group in newTask.assignedTo.all():
-                groupName = group.name + '-' + str(group.pk)
-                pathToAssignedGroupSolution = os.path.join(pathToTaskSolutions, groupName)
-
-                if not os.path.exists(pathToAssignedGroupSolution):
-                    os.mkdir(pathToAssignedGroupSolution)
-                else:
-                    print("Nie udalo sie utworzyc folderu dla grupy " + groupName)
-                    break
-
-                for member in group.users.all():
-                    memberName = member.username + '-' + str(member.pk)
-                    pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
-
-                    if not os.path.exists(pathToGroupMemberSolution):
-                        os.mkdir(pathToGroupMemberSolution)
-                    else:
-                        print("Nie udalo sie utworzyc folderu dla uzytkownika " + memberName)
-                        print("w grupie " + groupName)
-                        break
-
+            createDirectoryForTaskSolutions(newTask)
 
         except Exception as e:
             print("Nie udalo sie utworzyc zadania")
