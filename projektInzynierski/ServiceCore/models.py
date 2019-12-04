@@ -54,7 +54,7 @@ class Exercise(models.Model):
 #   - pathTofile - sciezka do pliku w ktorym zapisany jest test
 #   - exercise - zadanie z ktorym test jest powiazany
 class UnitTest(models.Model):
-    pathToFile = models.FilePathField()
+    pathToFile = models.FilePathField(max_length=1024)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
 
 # Klasa reprezentuje kolokwium, ktore sklada sie z kilku cwiczen

@@ -1,11 +1,13 @@
 import os
-from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup, createExerciseDirectory
+from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup, createExerciseDirectory, getExerciseDirectoryPath
 
 from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test
+from django.db.models import FilePathField
+
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test, UnitTest
 
 from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer, TestSerializer, GroupWithAssignedTasksSerializer, TaskWithAssignedGroupsSerializer
 
@@ -205,9 +207,39 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                                                   content=data['content'],
                                                   level=level)
             newExercise.save()
+            (message, result) = createExerciseDirectory(newExercise)
 
-            createExerciseDirectory(newExercise)
-        except:
+            if not result:
+                print("Nie udalo sie utworzyc folderu dla obiektu Exercise")
+                return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
+
+            for index, unit_test in enumerate(data['unitTests']):
+                print(unit_test)
+                pathToExerciseDir = getExerciseDirectoryPath(newExercise)
+                fileName = "unit_test" + str(index) + ".py"
+                pathToFile = os.path.join(pathToExerciseDir, fileName)
+
+                f = open(pathToFile, "w+")
+                f.write("import unittest \n\
+import sys \n\
+class FirstTest(unittest.TestCase):\n \
+    def test_first(self):\n\
+        " + unit_test + "\n\
+if __name__ == '__main__':\n\
+    unittest.main()")
+
+                f.close()
+
+                # zapis sciezki w modelu nie dziala
+                print(pathToFile)
+                newUnitTest = UnitTest.objects.create(exercise=newExercise, pathToFile=FilePathField(path=pathToFile))
+                print(newUnitTest.pathToFile)
+                print(newUnitTest.pathToFile.path)
+                newUnitTest.save()
+                print(newUnitTest)
+
+        except Exception as e:
+            print(e)
             print("Nie udalo sie utworzyc obiektu Exercise")
             return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
 

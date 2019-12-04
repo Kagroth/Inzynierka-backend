@@ -77,9 +77,19 @@ def createExerciseDirectory(exercise):
 
     if not os.path.exists(pathToExercise):
         os.mkdir(pathToExercise)
+        return (
+            "Utworzono folder dla cwiczenia",
+            True
+        )
     else:
         print()
         return (
-            "Nie udalo sie utworzyc folderu dla tego zadania",
+            "Nie udalo sie utworzyc folderu dla tego cwiczenia",
             False
         )
+
+def getExerciseDirectoryPath(exercise):
+    directoryName = exercise.title + '-' + exercise.author.username + '-' + str(exercise.pk)
+    cwd = os.getcwd()
+    
+    return os.path.join(cwd, 'exercises', directoryName)
