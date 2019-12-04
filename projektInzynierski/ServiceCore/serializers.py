@@ -81,10 +81,11 @@ class TaskSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     taskType = TaskTypeSerializer()
     exercise = ExerciseSerializer()   
+    test = TestSerializer()
     
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'isActive')
+        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'test', 'isActive')
 
 
 class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
@@ -108,9 +109,10 @@ class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
 class TaskWithAssignedGroupsSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     taskType = TaskTypeSerializer()
-    exercise = ExerciseSerializer()   
+    exercise = ExerciseSerializer()
+    test = TestSerializer()   
     assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'isActive')
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive')
