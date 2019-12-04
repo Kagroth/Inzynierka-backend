@@ -54,7 +54,7 @@ def createDirectoryForTaskSolutions(task):
     directoryName = task.title + '-' + task.author.username + '-' + str(task.pk)
 
     cwd = os.getcwd()
-    pathToTaskSolutions = os.path.join(cwd, directoryName)
+    pathToTaskSolutions = os.path.join(cwd, 'solutions', directoryName)
 
     if not os.path.exists(pathToTaskSolutions):
         os.mkdir(pathToTaskSolutions)
@@ -69,3 +69,17 @@ def createDirectoryForTaskSolutions(task):
     print(message)
     print(result)
 
+
+def createExerciseDirectory(exercise):
+    directoryName = exercise.title + '-' + exercise.author.username + '-' + str(exercise.pk)
+    cwd = os.getcwd()
+    pathToExercise = os.path.join(cwd, 'exercises', directoryName)
+
+    if not os.path.exists(pathToExercise):
+        os.mkdir(pathToExercise)
+    else:
+        print()
+        return (
+            "Nie udalo sie utworzyc folderu dla tego zadania",
+            False
+        )

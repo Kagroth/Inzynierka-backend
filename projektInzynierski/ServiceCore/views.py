@@ -1,5 +1,5 @@
 import os
-from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup
+from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup, createExerciseDirectory
 
 from django.shortcuts import render
 from django.http.response import HttpResponse
@@ -205,6 +205,8 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                                                   content=data['content'],
                                                   level=level)
             newExercise.save()
+
+            createExerciseDirectory(newExercise)
         except:
             print("Nie udalo sie utworzyc obiektu Exercise")
             return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
