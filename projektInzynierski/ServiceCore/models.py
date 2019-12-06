@@ -115,9 +115,9 @@ class Group(models.Model):
 #   - user - autor rozwiazania
 #   - rate - ocena rozwaizania
 class Solution(models.Model):
-    pathToFile = models.FilePathField()
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    pathToFile = models.FilePathField(max_length=1024)
+    task = models.ForeignKey(Task, related_name="solutions", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)
     rate = models.IntegerField()
 
 
