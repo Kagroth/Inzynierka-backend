@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test, Solution
 
 # Language model serializer
 class LanguageSerializer(serializers.ModelSerializer):
@@ -116,3 +116,28 @@ class TaskWithAssignedGroupsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive')
+
+class TaskWithSolutionData(serializers.ModelSerializer):    
+    author = UserSerializer()
+    taskType = TaskTypeSerializer()
+    exercise = ExerciseSerializer()
+    test = TestSerializer()   
+    assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
+    solution = serializers.SerializerMethodField('getSolution')
+
+    class Meta:
+        model = Task
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test' ,'isActive', 'solution')
+    
+    def getSolution(self, task):
+        solution = task.solutions.all()
+        return SolutionSerializer(solution, many=True).data
+
+class SolutionSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    task = TaskSerializer()
+
+    class Meta:
+        model = Solution
+        fields = ('pk', 'user', 'task', 'rate')
+
