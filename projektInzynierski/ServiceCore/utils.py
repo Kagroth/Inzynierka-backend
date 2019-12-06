@@ -2,7 +2,7 @@ import os
 
 def createSubdirectoryForUsersInGroup(group, groupSolutionsPath):
     for member in group.users.all():
-        memberName = member.username + '-' + str(member.pk)
+        memberName = member.username.replace(" ", "") + '-' + str(member.pk)
         pathToGroupMemberSolution = os.path.join(groupSolutionsPath, memberName)
 
         if not os.path.exists(pathToGroupMemberSolution):
@@ -51,7 +51,7 @@ def createSubdirectoryForAssignedGroup(task, solutionPath):
 
 
 def createDirectoryForTaskSolutions(task):
-    directoryName = task.title + '-' + task.author.username + '-' + str(task.pk)
+    directoryName = task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)
 
     cwd = os.getcwd()
     pathToTaskSolutions = os.path.join(cwd, 'solutions', directoryName)
@@ -71,7 +71,7 @@ def createDirectoryForTaskSolutions(task):
 
 
 def createExerciseDirectory(exercise):
-    directoryName = exercise.title + '-' + exercise.author.username + '-' + str(exercise.pk)
+    directoryName = exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
     cwd = os.getcwd()
     pathToExercise = os.path.join(cwd, 'exercises', directoryName)
 
@@ -89,7 +89,16 @@ def createExerciseDirectory(exercise):
         )
 
 def getExerciseDirectoryPath(exercise):
-    directoryName = exercise.title + '-' + exercise.author.username + '-' + str(exercise.pk)
+    directoryName = exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
     cwd = os.getcwd()
     
     return os.path.join(cwd, 'exercises', directoryName)
+
+def getUserSolutionPath(task, group, user):
+    directoryName = task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)
+    groupName = group.name.replace(" ", "") + '-' + str(group.pk)
+    memberName = user.username.replace(" ", "") + '-' + str(user.pk)
+
+    cwd = os.getcwd()
+
+    return os.path.join(cwd, 'solutions', directoryName, groupName, memberName)
