@@ -1,15 +1,18 @@
 import os
-from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup, createExerciseDirectory, getExerciseDirectoryPath
+import subprocess
+
+from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup, createExerciseDirectory, getExerciseDirectoryPath, getUserSolutionPath
 
 from django.shortcuts import render
 from django.http.response import HttpResponse
 
 from django.contrib.auth.models import User
 from django.db.models import FilePathField
+from django.core.files.storage import FileSystemStorage
 
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test, UnitTest
+from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test, UnitTest, Solution
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer, TestSerializer, GroupWithAssignedTasksSerializer, TaskWithAssignedGroupsSerializer
+from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer, TestSerializer, GroupWithAssignedTasksSerializer, TaskWithAssignedGroupsSerializer, SolutionSerializer, TaskWithSolutionData
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -158,6 +161,18 @@ class GroupViewSet(viewsets.ModelViewSet):
         
         return Response({"message": "Grupa została zaktualizowana"})
 
+    def destroy(self, request, pk=None):
+        data = request.data
+
+        if pk is None:
+            return Response({"message": "Nie podano parametru pk"})
+
+        if Group.objects.filter(pk=pk).exists():
+            Group.objects.filter(pk=pk).delete()
+            return Response({"message": "Grupa zostala usunieta"})
+        else:
+            return Response({"message": "Nie udalo sie usunac grupy"})
+
 
 
 class ExerciseViewSet(viewsets.ModelViewSet):
@@ -222,6 +237,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 f = open(pathToFile, "w+")
                 f.write("import unittest \n\
 import sys \n\
+from solution import * \n\
 class FirstTest(unittest.TestCase):\n \
     def test_first(self):\n\
         " + unit_test + "\n\
@@ -320,7 +336,7 @@ class TestViewSet(viewsets.ModelViewSet):
 
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    serializer_class = TaskWithAssignedGroupsSerializer
+    serializer_class = TaskWithSolutionData
 
     def get_queryset(self):
         queryset = None
@@ -329,9 +345,18 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         if profile.userType.name == "Student":
             queryset = Task.objects.all()
+            groups = self.request.user.membershipGroups.all()
+
+            if groups.count() > 0:
+                for group in groups:
+                    queryset.filter(assignedTo=group)
+            else:
+                queryset = queryset.none()
+
         else:
             queryset = self.request.user.my_tasks.all()
         
+        print(queryset)
         return queryset
 
 
@@ -378,3 +403,84 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         return Response({"message": "Zadanie zostalo utworzone"})
 
+class SolutionViewSet(viewsets.ModelViewSet):
+    permission_classes = (AllowAny,)
+    serializer_class = SolutionSerializer
+
+    def get_queryset(self):
+        queryset = None
+        return Solution.objects.all()
+        profile = Profile.objects.get(user=self.request.user)
+
+        if profile.userType.name == "Student":        
+            queryset = Solution.objects.filter(user=self.request.user)
+        else:
+            queryset = Solution.objects.all()
+
+        return queryset
+    
+    def retrieve(self, request, pk=None):
+        queryset = Solution.objects.all()
+        solution = queryset.get(pk=pk)
+        print(solution.user.membershipGroups.all()[:1].get())
+        serializer = SolutionSerializer(solution)
+        newdict = {}
+        solutionPath = ""
+
+        for group in solution.user.membershipGroups.all():
+            solutionPath = getUserSolutionPath(solution.task,
+                                           group,
+                                           solution.user)
+
+            solutionPath = os.path.join(solutionPath, 'solution.py')
+            print(solutionPath)
+            if os.path.isfile(solutionPath):
+                f = open(solutionPath, "r")
+                newdict['solutionValue'] = f.read()
+                f.close()        
+                break
+        
+        print(newdict)
+        newdict.update(serializer.data)
+        return Response(newdict)
+    
+    def create(self, request):
+        data = request.data
+        print(data)
+        print(data['file'])
+        print(request.FILES)
+
+        task = Task.objects.get(pk=data['taskPk'])
+        exercise = task.exercise
+
+        fileToSave = request.FILES['file']
+        fs = FileSystemStorage()
+
+        for group in task.assignedTo.all():
+            fs.location = getUserSolutionPath(task, group, request.user)
+            fileToSave.name = 'solution.py'
+            destinatedPath = os.path.join(fs.location, fileToSave.name)
+
+            if os.path.isfile(destinatedPath):
+                os.remove(destinatedPath)
+             
+            fs.save(fileToSave.name, fileToSave)
+
+        exercisePath = getExerciseDirectoryPath(exercise)
+        testResults = []
+
+        if os.path.isdir(exercisePath):
+            for subdir, dirs, files in os.walk(exercisePath):
+                for file in files:
+                    if os.path.isfile(os.path.join(subdir, file)):
+                        print (os.path.join(subdir, file))
+                        copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(fs.location, file))
+                        print(copyCommand)
+                        os.popen(copyCommand)
+                        test_command = 'python ' + str(os.path.join(fs.location, file))
+                        process = subprocess.Popen(test_command)
+                        stdoutdata, stderrdata = process.communicate()
+
+        newSolution, created = Solution.objects.update_or_create(task=task, user=request.user, pathToFile=fs.location, rate=2)
+        newSolution.save()
+        return Response({"message": "Pomyslnie zapisano rozwiazanie", "test_results": testResults})
