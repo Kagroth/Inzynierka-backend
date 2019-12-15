@@ -1,4 +1,8 @@
 import os
+from distutils.dir_util import copy_tree
+
+EXERCISES_DIRECTORY_NAME = "exercises"
+TESTS_DIRECTORY_NAME = "exercises_tests"
 
 # funkcja dla kazdego uzytkownika w kazdej grupie tworzy folder w ktorym bedzie 
 # przechowywane rozwiazanie zadania konkretnego uzytkownika
@@ -55,6 +59,20 @@ def createSubdirectoryForAssignedGroup(task, solutionPath):
 
 # funkcja tworzy folder ktory bedzie przechowywal rozwiazania zadania 'task'
 def createDirectoryForTaskSolutions(task):
+    typeOfTask = task.taskType.name
+
+    if typeOfTask == "Test":
+        # utworzenie katalogow dla kolokwium
+        pass
+    elif typeOfTask == "Exercise":
+        # utworzenie katalogu dla exercise
+        pass
+    else:
+        return (
+            "Podano niepoprawny rodzaj zadania",
+            False
+        )
+
     directoryName = task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)
 
     cwd = os.getcwd()
@@ -93,9 +111,39 @@ def createExerciseDirectory(exercise):
             False
         )
 
+# funkcja tworzy folder dla kolokwium 'test'
+def createTestDirectory(test):
+    directoryName = test.title.replace(" ", "") + '-' + test.author.username.replace(" ", "") + '-' + str(test.pk)
+    cwd = os.getcwd()
+    pathToTest = os.path.join(cwd, TESTS_DIRECTORY_NAME, directoryName)
+
+    if not os.path.exists(pathToTest):
+        os.mkdir(pathToTest)
+
+        for exercise in test.exercises.all():
+            exercisePath = getExerciseDirectoryPath(exercise)
+            exerciseDirectoryName = getExerciseDirectoryName(exercise)
+            exerciseInTestPath = os.path.join(pathToTest, exerciseDirectoryName)
+
+            copy_tree(exercisePath, exerciseInTestPath)
+        return (
+            "Utworzono folder dla kolokwium",
+            True
+        )
+    else:
+        print()
+        return (
+            "Nie udalo sie utworzyc folderu dla tego kolokwium",
+            False
+        )
+
+# funkcja zwraca nazwe folderu odpowiednia dla podanego cwiczenia
+def getExerciseDirectoryName(exercise):
+    return exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
+
 # funkcja zwraca sciezke do folderu z konkretnym cwiczeniem w ktorym sa skladowane unit testy
 def getExerciseDirectoryPath(exercise):
-    directoryName = exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
+    directoryName = getExerciseDirectoryName(exercise)
     cwd = os.getcwd()
     
     return os.path.join(cwd, 'exercises', directoryName)
