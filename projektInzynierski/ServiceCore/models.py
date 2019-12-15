@@ -22,6 +22,12 @@ class UserType(models.Model):
     def __str__(self):
         return self.name
 
+class SolutionType(models.Model):
+    name = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.name
+
 '''
     User model posiada pola:
         first_name, last_name, username, email, password
@@ -56,6 +62,7 @@ class Exercise(models.Model):
 class UnitTest(models.Model):
     pathToFile = models.FilePathField(max_length=1024)
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    content = models.CharField(max_length=2048, blank=True, null=True)
 
 # Klasa reprezentuje kolokwium, ktore sklada sie z kilku cwiczen
 #   - title - nazwa kolokwium
@@ -86,6 +93,7 @@ class TaskType(models.Model):
 class Task(models.Model):
     author = models.ForeignKey(User, related_name="my_tasks", blank=True, null=True, on_delete=models.CASCADE)
     taskType = models.ForeignKey(TaskType, null=True, on_delete=models.CASCADE)
+    solutionType = models.ForeignKey(SolutionType, null=True, blank=True, on_delete=models.CASCADE)
     title = models.CharField(max_length=64, blank=True, null=True)
     exercise = models.ForeignKey(Exercise, null=True, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, blank=True, null=True, on_delete=models.CASCADE)
