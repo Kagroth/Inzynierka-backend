@@ -1,5 +1,7 @@
 import os
 
+# funkcja dla kazdego uzytkownika w kazdej grupie tworzy folder w ktorym bedzie 
+# przechowywane rozwiazanie zadania konkretnego uzytkownika
 def createSubdirectoryForUsersInGroup(group, groupSolutionsPath):
     for member in group.users.all():
         memberName = member.username.replace(" ", "") + '-' + str(member.pk)
@@ -22,6 +24,7 @@ def createSubdirectoryForUsersInGroup(group, groupSolutionsPath):
 
 
 
+# funkcja tworzy podfolder w folderze z rozwiazaniami zadania 'task' dla kazdej z przypisanych grup
 def createSubdirectoryForAssignedGroup(task, solutionPath):
     for group in task.assignedTo.all():
         groupName = group.name + '-' + str(group.pk)
@@ -50,6 +53,7 @@ def createSubdirectoryForAssignedGroup(task, solutionPath):
     )
 
 
+# funkcja tworzy folder ktory bedzie przechowywal rozwiazania zadania 'task'
 def createDirectoryForTaskSolutions(task):
     directoryName = task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)
 
@@ -70,6 +74,7 @@ def createDirectoryForTaskSolutions(task):
     print(result)
 
 
+# funkcja tworzy folder dla konkretnego cwiczenia
 def createExerciseDirectory(exercise):
     directoryName = exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
     cwd = os.getcwd()
@@ -88,12 +93,14 @@ def createExerciseDirectory(exercise):
             False
         )
 
+# funkcja zwraca sciezke do folderu z konkretnym cwiczeniem w ktorym sa skladowane unit testy
 def getExerciseDirectoryPath(exercise):
     directoryName = exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
     cwd = os.getcwd()
     
     return os.path.join(cwd, 'exercises', directoryName)
 
+# funkcja zwraca sciezke do rozwiazania zadania przez uzytkownika
 def getUserSolutionPath(task, group, user):
     directoryName = task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)
     groupName = group.name.replace(" ", "") + '-' + str(group.pk)
