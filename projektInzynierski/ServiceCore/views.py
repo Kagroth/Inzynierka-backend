@@ -485,7 +485,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
              
             fs.save(fileToSave.name, fileToSave)
 
-        exercisePath = getExerciseDirectoryPath(exercise)
+        exercisePath = getExerciseDirectoryRootPath(exercise)
         testResults = []
 
         if os.path.isdir(exercisePath):
