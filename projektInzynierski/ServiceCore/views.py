@@ -329,7 +329,16 @@ class TestViewSet(viewsets.ModelViewSet):
             if not Test.objects.filter(pk=pk).exists():
                 return Response({"message": "Takie kolokwium nie istnieje"})
 
-            Test.objects.filter(pk=pk).delete()            
+            testToDelete = Test.objects.filter(pk=pk).get()
+            pathToTest = getTestDirectoryRootPath(testToDelete)
+            
+            if os.path.exists(pathToTest):
+                shutil.rmtree(pathToTest)
+            else:
+                print("Nie ma takiego folderu")
+            
+            testToDelete.delete()
+
         except Exception as e:
             print(e)
             return Response({"message": "Nie udalo sie usunac kolokwium"})
