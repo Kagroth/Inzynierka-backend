@@ -186,7 +186,6 @@ class GroupViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nie udalo sie usunac grupy"})
 
 
-
 # viewset z cwiczeniami
 class ExerciseViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -275,8 +274,6 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             return Response({"message": "Nie udalo sie usunac cwiczenia"})
         
         return Response({"message": "Cwiczenie zostalo usuniete"})
-
-
 
 
 # viewset z kolokwiami
@@ -479,8 +476,22 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
         task = Task.objects.get(pk=data['taskPk'])
         exercise = task.exercise
+        fileToSave = None
+
+        if task.solutionType == SolutionType.objects.get(name="File"):
+            fileToSave = request.FILES['file']
+
+            if fileToSave is None:
+                return Response({"message": "Nie przeslano pliku"})
+
+            allowed_extension = task.exercise.language.allowed_extension
+            print(allowed_extension)
+
+            if not fileToSave.name.endswith(allowed_extension):
+                return Response({"message": "Niepoprawny format pliku"})
 
         fileToSave = request.FILES['file']
+        
         fs = FileSystemStorage()
 
         for group in task.assignedTo.all():
