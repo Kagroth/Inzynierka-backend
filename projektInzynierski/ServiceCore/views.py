@@ -3,6 +3,7 @@ import subprocess
 import shutil
 
 from ServiceCore.utils import *
+from ServiceCore.unit_tests_utils import create_unit_tests
 
 from django.shortcuts import render
 from django.http.response import HttpResponse
@@ -232,32 +233,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 print("Nie udalo sie utworzyc folderu dla obiektu Exercise")
                 return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
 
-            # tworzenie plikow z unit testami - wydzielic metode
-            for index, unit_test in enumerate(data['unitTests']):
-                print(unit_test)
-                pathToExerciseDir = getExerciseDirectoryPath(newExercise)
-                fileName = "test_unit" + str(index) + ".py"
-                pathToFile = os.path.join(pathToExerciseDir, fileName)
-
-                f = open(pathToFile, "w+")
-                f.write("import unittest \n\
-import sys \n\
-from solution import * \n\
-class FirstTest(unittest.TestCase):\n \
-    def test_first(self):\n\
-        " + unit_test + "\n\
-if __name__ == '__main__':\n\
-    unittest.main()")
-
-                f.close()
-
-                # zapis sciezki w modelu nie dziala
-                print(pathToFile)
-                newUnitTest = UnitTest.objects.create(exercise=newExercise, pathToFile=FilePathField(path=pathToFile))
-                print(newUnitTest.pathToFile)
-                print(newUnitTest.pathToFile.path)
-                newUnitTest.save()
-                print(newUnitTest)
+            create_unit_tests(newExercise, data['unitTests'])
 
         except Exception as e:
             print(e)
