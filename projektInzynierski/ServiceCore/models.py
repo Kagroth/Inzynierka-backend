@@ -5,9 +5,10 @@ from django.contrib.auth.models import User
 
 class Language(models.Model):
     name = models.CharField(max_length=32)
+    allowed_extension = models.CharField(max_length=16, blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.name + " - " + self.allowed_extension
 
 
 class Level(models.Model):
