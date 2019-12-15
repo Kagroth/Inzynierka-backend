@@ -126,12 +126,12 @@ def createExerciseSolutionDirectory(task):
     if not createDirectory(pathToSolution):
         return False
     
-    if not createExerciseDirectory(task.exercise.get(), pathToSolution):
+    if not createExerciseDirectory(task.exercise, pathToSolution):
         return False
 
     for group in task.assignedTo.all():
         groupName = group.name + '-' + str(group.pk)
-        pathToAssignedGroupSolution = os.path.join(pathToSolution, getExerciseDirectoryName(task.exercise.get()), groupName)
+        pathToAssignedGroupSolution = os.path.join(pathToSolution, getExerciseDirectoryName(task.exercise), groupName)
         created = createDirectory(pathToAssignedGroupSolution)
 
         if not created:
@@ -163,18 +163,15 @@ def createTestSolutionDirectory(task):
 
     if not createDirectory(pathToSolution):
         return False
-
-    if not createTestDirectory(task.test.get(), pathToSolution):
-        return False
-
+    
     for group in task.assignedTo.all():
         groupName = group.name + '-' + str(group.pk)
-        pathToAssignedGroupSolution = os.path.join(pathToSolution, getExerciseDirectoryName(task.exercise.get()), groupName)
+        pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
         created = createDirectory(pathToAssignedGroupSolution)
 
         if not created:
             return False
-        
+
         for member in group.users.all():
             memberName = member.username.replace(" ", "") + '-' + str(member.pk)
             pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
@@ -191,100 +188,11 @@ def createTestSolutionDirectory(task):
 
     return True
 
-
-
-# funkcja dla kazdego uzytkownika w kazdej grupie tworzy folder w ktorym bedzie 
-# przechowywane rozwiazanie zadania konkretnego uzytkownika
-def createSubdirectoryForUsersInGroup(group, groupSolutionsPath):
-    for member in group.users.all():
-        memberName = member.username.replace(" ", "") + '-' + str(member.pk)
-        pathToGroupMemberSolution = os.path.join(groupSolutionsPath, memberName)
-
-        if not os.path.exists(pathToGroupMemberSolution):
-            os.mkdir(pathToGroupMemberSolution)
-        else:
-            print("Nie udalo sie utworzyc folderu dla uzytkownika " + memberName)
-            print("w grupie " + group.name)
-            return (
-                "Nie udalo sie utworzyc folderu dla uzytkownika " + memberName,
-                False
-            )
-
-    return (
-        "Pomyslnie utworzono podfoldery dla grupy " + group.name,
-        True
-    )    
-
-
-
-# funkcja tworzy podfolder w folderze z rozwiazaniami zadania 'task' dla kazdej z przypisanych grup
-def createSubdirectoryForAssignedGroup(task, solutionPath):
-    for group in task.assignedTo.all():
-        groupName = group.name + '-' + str(group.pk)
-        pathToAssignedGroupSolution = os.path.join(solutionPath, groupName)
-
-        if not os.path.exists(pathToAssignedGroupSolution):
-            os.mkdir(pathToAssignedGroupSolution)
-        else:
-            return (
-                "Podfolder dla podanej grupy juz istnieje",
-                False
-            )
-        
-        (message, result) = createSubdirectoryForUsersInGroup(group, pathToAssignedGroupSolution)
-
-        if not result:
-            print(message)
-            return (
-                message,
-                False
-            )
-
-    return (
-        "Pomyslnie utworzono podfoldery dla zadania " + task.title,
-        True
-    )
-
-'''funkcja tworzy folder z rozwiazaniami dla zadania typu Exercise
-def createExerciseSolutionDirectory(task):
-    directoryName = getTaskSolutionsDirectoryName(task)
-
-    cwd = os.getcwd()
-    pathToTaskSolutions = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
-
-    if not os.path.exists(pathToTaskSolutions):
-        os.mkdir(pathToTaskSolutions)
-    else:
-        print("Nie udalo sie utworzyc folderu")
-        return (
-            "Folder o podanej nazwie juz istnieje",
-            False
-        )
-
-    (message, result) = createSubdirectoryForAssignedGroup(task, pathToTaskSolutions)
-    print(message)
-    print(result)
-
-
-def createTestSolutionDirectory(task):
-    directoryName = getTaskSolutionsDirectoryName(task)
-    cwd = os.getcwd()
-    pathToTaskSolutions = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
-
-    for group in task.assignedTo.all():
-        groupName = group.name.replace(" ", "") + '-' + str(group.pk)
-        pathToGroupSolutions = os.path.join(pathToTaskSolutions, groupName)
-
-
-        
-    for exercise in task.test.exercises.all():
-        createExerciseDirectory(exercise, pathToTaskSolutions)
-'''
-
-# funkcja tworzy folder ktory bedzie przechowywal rozwiazania zadania 'task'
 def createDirectoryForTaskSolutions(task):
+    # funkcja tworzy folder ktory bedzie przechowywal rozwiazania zadania 'task'
     typeOfTask = task.taskType.name
-
+    print(typeOfTask)
+    
     if typeOfTask == "Test":
         createTestSolutionDirectory(task)
     elif typeOfTask == "Exercise":
