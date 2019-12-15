@@ -108,6 +108,15 @@ def getTaskSolutionsDirectoryName(task):
     # funkcja zwraca nazwe folderu w ktorym znajduja sie rozwiazania zadania 'task'
     return task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)    
 
+def getUserSolutionPath(task, group, user):
+    if task.taskType.name == "Exercise":    
+        taskDirName = getTaskSolutionsDirectoryName(task)
+        groupName = group.name + '-' + str(group.pk)
+        userName = user.username.replace(" ", "") + '-' + str(user.pk)
+        cwd = os.getcwd()
+
+        return os.path.join(cwd, taskDirName, groupName, userName)
+
 
 def createExerciseSolutionDirectory(task):
     # funkcja tworzy strukture katalogow dla zadania typu exercise
@@ -125,13 +134,10 @@ def createExerciseSolutionDirectory(task):
     
     if not createDirectory(pathToSolution):
         return False
-    
-    if not createExerciseDirectory(task.exercise, pathToSolution):
-        return False
 
     for group in task.assignedTo.all():
         groupName = group.name + '-' + str(group.pk)
-        pathToAssignedGroupSolution = os.path.join(pathToSolution, getExerciseDirectoryName(task.exercise), groupName)
+        pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
         created = createDirectory(pathToAssignedGroupSolution)
 
         if not created:
