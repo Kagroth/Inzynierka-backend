@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from ServiceCore.utils import createDirectoryForTaskSolutions, createSubdirectoryForAssignedGroup, createSubdirectoryForUsersInGroup, createExerciseDirectory, getExerciseDirectoryPath, getUserSolutionPath
+from ServiceCore.utils import *
 
 from django.shortcuts import render
 from django.http.response import HttpResponse
@@ -10,9 +10,9 @@ from django.contrib.auth.models import User
 from django.db.models import FilePathField
 from django.core.files.storage import FileSystemStorage
 
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test, UnitTest, Solution
+from ServiceCore.models import *
 
-from ServiceCore.serializers import UserSerializer, GroupSerializer, ProfileSerializer, ExerciseSerializer, TaskSerializer, LevelSerializer, LanguageSerializer, TestSerializer, GroupWithAssignedTasksSerializer, TaskWithAssignedGroupsSerializer, SolutionSerializer, TaskWithSolutionData
+from ServiceCore.serializers import *
 
 from rest_framework.views import APIView
 from rest_framework import viewsets
@@ -45,7 +45,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     # przeladowanie handlera metody POST -> tworzenie usera
-    # aktualnie domyslnie tworzony jest student
     def create(self, request):
         data = request.data
         userType = None
@@ -85,6 +84,7 @@ class UserViewSet(viewsets.ModelViewSet):
         print("Konto zostalo utworzone")
         return Response({"message": "Konto zostało utworzone"})
 
+# 
 class StudentViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
@@ -133,6 +133,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         return Response({"message": "Grupa została utworzona"})
     
+    # aktualizacja grupy o podanym pk
     def update(self, request, pk=None):
         data = request.data
 
@@ -161,6 +162,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         
         return Response({"message": "Grupa została zaktualizowana"})
 
+    # usuniecie grupy o podanym pk
     def destroy(self, request, pk=None):
         data = request.data
 
@@ -191,6 +193,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         
         return queryset
     
+    # tworzenie cwiczenia
     def create(self, request):
         print(request.data)
         data = request.data
@@ -208,9 +211,6 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
         if not languages.filter(name=data['language']['name']).exists():
             return Response({"message": "Podano niepoprawny jezyk programowania"})
-
-        # if not data['level'].isdigit() or not data['level'] in ['1', '2', '3']:
-        #    return Response({"message": "Podano niepoprawny poziom"})
 
         try:
             level = levels.get(name=data['level']['name'])        
@@ -231,7 +231,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             for index, unit_test in enumerate(data['unitTests']):
                 print(unit_test)
                 pathToExerciseDir = getExerciseDirectoryPath(newExercise)
-                fileName = "unit_test" + str(index) + ".py"
+                fileName = "test_unit" + str(index) + ".py"
                 pathToFile = os.path.join(pathToExerciseDir, fileName)
 
                 f = open(pathToFile, "w+")
@@ -261,6 +261,7 @@ if __name__ == '__main__':\n\
 
         return Response({"message": "Utworzono Exercise"})
     
+    # usuwanie cwiczenia o podanym pk
     def destroy(self, request, pk=None):
         if pk is None:
             return Response({"message": "Nie podano klucza glownego cwiczenia do usuniecia"})
@@ -279,6 +280,7 @@ if __name__ == '__main__':\n\
 
 
 
+# viewset z kolokwiami
 class TestViewSet(viewsets.ModelViewSet):    
     permission_classes = (IsAuthenticated,)
     serializer_class = TestSerializer
@@ -295,6 +297,7 @@ class TestViewSet(viewsets.ModelViewSet):
         
         return queryset
     
+    # utworz kolokwium
     def create(self, request):
         print(request.data)
         data = request.data
@@ -319,6 +322,7 @@ class TestViewSet(viewsets.ModelViewSet):
         
         return Response({"message": "Utworzono Test"})
     
+    # usun kolokwium o podanym pk
     def destroy(self, request, pk=None):
         if pk is None:
             return Response({"message": "Nie podano klucza glownego kolokwium do usuniecia"})
@@ -334,6 +338,7 @@ class TestViewSet(viewsets.ModelViewSet):
         
         return Response({"message": "Kolokwium zostalo usuniete"})
 
+# viewset z zadaniami przydzielanymi studentom
 class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = TaskWithSolutionData
@@ -360,6 +365,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+    # utworz zadanie
     def create(self, request):
         data = request.data
         print(data)
@@ -403,6 +409,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         return Response({"message": "Zadanie zostalo utworzone"})
 
+# viewset z rozwiazaniami zadan
 class SolutionViewSet(viewsets.ModelViewSet):
     permission_classes = (AllowAny,)
     serializer_class = SolutionSerializer
@@ -419,6 +426,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
         return queryset
     
+    # zwroc rozwiazanie o podanym pk
     def retrieve(self, request, pk=None):
         queryset = Solution.objects.all()
         solution = queryset.get(pk=pk)
@@ -444,6 +452,9 @@ class SolutionViewSet(viewsets.ModelViewSet):
         newdict.update(serializer.data)
         return Response(newdict)
     
+    # tworzenie rozwiazania i testowanie:
+    # aktualne obslugiwane metody rozwiazania:
+    #   - przeslanie pliku
     def create(self, request):
         data = request.data
         print(data)
@@ -474,12 +485,23 @@ class SolutionViewSet(viewsets.ModelViewSet):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
                         print (os.path.join(subdir, file))
+                        # skopiowanie unit testow 
                         copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(fs.location, file))
                         print(copyCommand)
+                        print("")
                         os.popen(copyCommand)
-                        test_command = 'python ' + str(os.path.join(fs.location, file))
-                        process = subprocess.Popen(test_command)
-                        stdoutdata, stderrdata = process.communicate()
+                        # polecenie uruchamiajace testy, mozna wyniesc po za petle
+                        test_command = 'python -m unittest discover -v -s ' + fs.location
+                        print(test_command)
+                        rfile = open(os.path.join(fs.location, "result.txt"), "w")
+                        # uruchomienie testow
+                        process = subprocess.run(test_command, capture_output=True)
+                        print(process.returncode)
+                        print(process.stdout)
+                        print(process.stderr.decode("utf-8"))
+                        # zapis wyniku testow do pliku results.txt
+                        rfile.write(process.stderr.decode("utf-8"))
+                        rfile.close()
 
         newSolution, created = Solution.objects.update_or_create(task=task, user=request.user, pathToFile=fs.location, rate=2)
         newSolution.save()
