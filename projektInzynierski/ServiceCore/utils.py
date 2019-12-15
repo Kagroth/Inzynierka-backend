@@ -1,8 +1,9 @@
 import os
 from distutils.dir_util import copy_tree
 
-EXERCISES_DIRECTORY_NAME = "exercises"
-TESTS_DIRECTORY_NAME = "exercises_tests"
+EXERCISES_DIRECTORY_ROOT = "exercises"
+TESTS_DIRECTORY_ROOT = "exercises_tests"
+SOLUTIONS_DIRECTORY_ROOT = "solutions"
 
 # funkcja dla kazdego uzytkownika w kazdej grupie tworzy folder w ktorym bedzie 
 # przechowywane rozwiazanie zadania konkretnego uzytkownika
@@ -76,7 +77,7 @@ def createDirectoryForTaskSolutions(task):
     directoryName = task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)
 
     cwd = os.getcwd()
-    pathToTaskSolutions = os.path.join(cwd, 'solutions', directoryName)
+    pathToTaskSolutions = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
 
     if not os.path.exists(pathToTaskSolutions):
         os.mkdir(pathToTaskSolutions)
@@ -94,9 +95,9 @@ def createDirectoryForTaskSolutions(task):
 
 # funkcja tworzy folder dla konkretnego cwiczenia
 def createExerciseDirectory(exercise):
-    directoryName = exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
+    directoryName = getExerciseDirectoryName(exercise)
     cwd = os.getcwd()
-    pathToExercise = os.path.join(cwd, 'exercises', directoryName)
+    pathToExercise = os.path.join(cwd, EXERCISES_DIRECTORY_ROOT, directoryName)
 
     if not os.path.exists(pathToExercise):
         os.mkdir(pathToExercise)
@@ -113,9 +114,9 @@ def createExerciseDirectory(exercise):
 
 # funkcja tworzy folder dla kolokwium 'test'
 def createTestDirectory(test):
-    directoryName = test.title.replace(" ", "") + '-' + test.author.username.replace(" ", "") + '-' + str(test.pk)
+    directoryName = getTestDirectoryName(test)
     cwd = os.getcwd()
-    pathToTest = os.path.join(cwd, TESTS_DIRECTORY_NAME, directoryName)
+    pathToTest = os.path.join(cwd, TESTS_DIRECTORY_ROOT, directoryName)
 
     if not os.path.exists(pathToTest):
         os.mkdir(pathToTest)
@@ -126,6 +127,7 @@ def createTestDirectory(test):
             exerciseInTestPath = os.path.join(pathToTest, exerciseDirectoryName)
 
             copy_tree(exercisePath, exerciseInTestPath)
+
         return (
             "Utworzono folder dla kolokwium",
             True
@@ -141,12 +143,16 @@ def createTestDirectory(test):
 def getExerciseDirectoryName(exercise):
     return exercise.title.replace(" ", "") + '-' + exercise.author.username.replace(" ", "") + '-' + str(exercise.pk)
 
+# funckaj zwraca nazwe folderu dla podanego kolokwium
+def getTestDirectoryName(test):
+    return test.title.replace(" ", "") + '-' + test.author.username.replace(" ", "") + '-' + str(test.pk)
+
 # funkcja zwraca sciezke do folderu z konkretnym cwiczeniem w ktorym sa skladowane unit testy
 def getExerciseDirectoryPath(exercise):
     directoryName = getExerciseDirectoryName(exercise)
     cwd = os.getcwd()
     
-    return os.path.join(cwd, 'exercises', directoryName)
+    return os.path.join(cwd, EXERCISES_DIRECTORY_ROOT, directoryName)
 
 # funkcja zwraca sciezke do rozwiazania zadania przez uzytkownika
 def getUserSolutionPath(task, group, user):
@@ -156,4 +162,4 @@ def getUserSolutionPath(task, group, user):
 
     cwd = os.getcwd()
 
-    return os.path.join(cwd, 'solutions', directoryName, groupName, memberName)
+    return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName, groupName, memberName)
