@@ -68,7 +68,7 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             if User.objects.filter(username=data['username']).exists():
                 print(usernameAlreadyExists)
-                return Response({"message": usernameAlreadyExists})
+                return Response({"message": usernameAlreadyExists}, status=409)
             
             if User.objects.filter(email=data['email']).exists():
                 print(emailAlreadyExists)
