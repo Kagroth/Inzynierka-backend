@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 
 from ServiceCore.utils import *
 
@@ -274,7 +275,18 @@ if __name__ == '__main__':\n\
             if not Exercise.objects.filter(pk=pk).exists():
                 return Response({"message": "Takie cwiczenie nie istnieje"})
 
-            Exercise.objects.filter(pk=pk).delete()            
+            print("Pobier cwiczenie")
+            exerciseTodelete = Exercise.objects.filter(pk=pk).get()
+            print("Pobieram sciezke do folderu z cwiczeniem")
+            pathToExercise = getExerciseDirectoryPath(exerciseTodelete)
+            print("Usuwam folder - " + pathToExercise)
+            if os.path.exists(pathToExercise):
+                shutil.rmtree(pathToExercise)
+            else:
+                print("Nie ma takiego folderu")
+            print("Usuwam cwiczenie")
+            exerciseTodelete.delete()   
+            print("usuniete")         
         except Exception as e:
             print(e)
             return Response({"message": "Nie udalo sie usunac cwiczenia"})
