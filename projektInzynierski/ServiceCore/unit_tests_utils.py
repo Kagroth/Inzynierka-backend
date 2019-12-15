@@ -19,11 +19,5 @@ def test_first(self):\n")
                 unit_test_file.write("\t\t" + line + "\n")
             
             unit_test_file.write("\nif __name__ == '__main__':\n\tunittest.main()")
-
-        # zapis sciezki w modelu nie dziala
-        print(pathToFile)
-        newUnitTest = UnitTest.objects.create(exercise=exercise, pathToFile=pathToFile)
-        print("Zapisana sciezka: " + newUnitTest.pathToFile)
-        #print(newUnitTest.pathToFile.path)
-        newUnitTest.save()
-        print(newUnitTest)
+            newUnitTest = UnitTest.objects.create(exercise=exercise, pathToFile=pathToFile, content=unit_test)
+            newUnitTest.save()
