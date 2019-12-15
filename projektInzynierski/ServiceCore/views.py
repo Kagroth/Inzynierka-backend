@@ -309,7 +309,9 @@ class TestViewSet(viewsets.ModelViewSet):
                 exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])
                 testToCreate.exercises.add(exercise)
             
+            createTestDirectory(testToCreate)
             testToCreate.save()
+
         except Exception as e:
             print(e)
             print("Nastąpił błąd podczas tworzenia testu")
