@@ -48,6 +48,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
     # przeladowanie handlera metody POST -> tworzenie usera
     def create(self, request):
+        # komunikaty messages zwracane przez widok
+        userCreationFailed = "Nie udalo sie utworzyc uzytkownika danego typu"
+        usernameAlreadyExists = "Uzytkownik o podanej nazwie juz istnieje"
+        emailAlreadyExists = "Ten email jest juz zajety"
+        serverError = "Blad serwera przy tworzeniu konta"
+        successMessage = "Konto zostało utworzone"
+
+        # dane requesta
         data = request.data
         userType = None
         user = None
@@ -55,16 +63,16 @@ class UserViewSet(viewsets.ModelViewSet):
         if data['userType'] == "Student" or data['userType'] == "Teacher": 
             userType = UserType.objects.get(name=data['userType'])
         else:
-            return Response({"message": "Nie udalo sie utworzyc uzytkownika danego typu"})
+            return Response({"message": userCreationFailed})
 
         try:
             if User.objects.filter(username=data['username']).exists():
-                print("Uzytkownik o podanej nazwie juz istnieje")
-                return Response({"message": "Uzytkownik o podanej nazwie juz istnieje"})
+                print(usernameAlreadyExists)
+                return Response({"message": usernameAlreadyExists})
             
             if User.objects.filter(email=data['email']).exists():
-                print("Ten email jest juz zajety")
-                return Response({"message": "Ten email jest juz zajety"})
+                print(emailAlreadyExists)
+                return Response({"message": emailAlreadyExists})
 
             user = User.objects.create_user(username=data['username'],
                                         first_name=data['firstname'],
@@ -74,19 +82,19 @@ class UserViewSet(viewsets.ModelViewSet):
             user.save()
         except Exception as e:
             print("Nie udalo się utworzyć obiektu typu User", e)
-            return Response({"message": "Blad serwera przy tworzeniu konta"})
+            return Response({"message": serverError})
 
         try: 
             profile = Profile.objects.create(user=user, userType=userType)
             profile.save()
         except:
             print("Nie udalo sie utworzyc obiektu typu Profile")
-            return Response({"message": "Blad serwera przy tworzeniu konta"})
+            return Response({"message": serverError})
 
-        print("Konto zostalo utworzone")
-        return Response({"message": "Konto zostało utworzone"})
+        print(successMessage)
+        return Response({"message": successMessage})
 
-# 
+ 
 class StudentViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
