@@ -177,6 +177,7 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 
+# viewset z cwiczeniami
 class ExerciseViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ExerciseSerializer
@@ -187,6 +188,8 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         profile = Profile.objects.get(user=self.request.user)
 
         if profile.userType.name == "Student":
+            # student nie powinien miec mozliwosci ogladania cwiczen, teoretycznie
+            # wglad do nich powinien byc jedynie poprzez Task
             queryset = Exercise.objects.all()
         else:
             queryset = self.request.user.exercises.all()
@@ -228,6 +231,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                 print("Nie udalo sie utworzyc folderu dla obiektu Exercise")
                 return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
 
+            # tworzenie plikow z unit testami - wydzielic metode
             for index, unit_test in enumerate(data['unitTests']):
                 print(unit_test)
                 pathToExerciseDir = getExerciseDirectoryPath(newExercise)
@@ -291,6 +295,8 @@ class TestViewSet(viewsets.ModelViewSet):
         profile = Profile.objects.get(user=self.request.user)
 
         if profile.userType.name == "Student":
+            # student nie powinien miec mozliwosci ogladania kolokwium, teoretycznie
+            # wglad do nich powinien byc jedynie poprzez Task
             queryset = Test.objects.all()
         else:
             queryset = self.request.user.tests.all()
@@ -298,6 +304,7 @@ class TestViewSet(viewsets.ModelViewSet):
         return queryset
     
     # utworz kolokwium
+    # tu dopisac tworzenie folderow dla kolokwium
     def create(self, request):
         print(request.data)
         data = request.data
@@ -323,6 +330,7 @@ class TestViewSet(viewsets.ModelViewSet):
         return Response({"message": "Utworzono Test"})
     
     # usun kolokwium o podanym pk
+    # tu dopisac usuwanie folderu
     def destroy(self, request, pk=None):
         if pk is None:
             return Response({"message": "Nie podano klucza glownego kolokwium do usuniecia"})
@@ -430,6 +438,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         queryset = Solution.objects.all()
         solution = queryset.get(pk=pk)
+        # pobranie pierwszej grupy
         print(solution.user.membershipGroups.all()[:1].get())
         serializer = SolutionSerializer(solution)
         newdict = {}
