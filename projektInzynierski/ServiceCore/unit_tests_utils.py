@@ -4,7 +4,7 @@ from ServiceCore.models import UnitTest
 def create_unit_tests(exercise, unit_tests_data):
     for index, unit_test in enumerate(unit_tests_data):
         print(unit_test)
-        pathToExerciseDir = getExerciseDirectoryPath(exercise)
+        pathToExerciseDir = getExerciseDirectoryRootPath(exercise)
         fileName = "test_unit" + str(index) + ".py"
         pathToFile = os.path.join(pathToExerciseDir, fileName)
 
