@@ -1,13 +1,20 @@
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from ServiceCore.models import Group, Profile, UserType, Exercise, Task, TaskType, Level, Language, Test, Solution
+from ServiceCore.models import *
+
+# SolutionType model serializer
+
+class SolutionTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SolutionType
+        fields = ('name',)
 
 # Language model serializer
 class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
-        fields = ('name',)
+        fields = ('name', 'allowed_extension')
 
 
 # Level model serializer
@@ -82,10 +89,11 @@ class TaskSerializer(serializers.ModelSerializer):
     taskType = TaskTypeSerializer()
     exercise = ExerciseSerializer()   
     test = TestSerializer()
+    solutionType = SolutionTypeSerializer()
     
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'test', 'isActive')
+        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'test', 'isActive', 'solutionType')
 
 
 class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
@@ -111,23 +119,25 @@ class TaskWithAssignedGroupsSerializer(serializers.ModelSerializer):
     taskType = TaskTypeSerializer()
     exercise = ExerciseSerializer()
     test = TestSerializer()   
+    solutionType = SolutionTypeSerializer()
     assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive')
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive', 'solutionType')
 
 class TaskWithSolutionData(serializers.ModelSerializer):    
     author = UserSerializer()
     taskType = TaskTypeSerializer()
     exercise = ExerciseSerializer()
-    test = TestSerializer()   
+    test = TestSerializer()
+    solutionType = SolutionTypeSerializer()   
     assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
     solution = serializers.SerializerMethodField('getSolution')
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test' ,'isActive', 'solution')
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test' ,'isActive', 'solution', 'solutionType')
     
     def getSolution(self, task):
         solution = task.solutions.all()
