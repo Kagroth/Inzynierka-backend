@@ -227,9 +227,8 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                                                   content=data['content'],
                                                   level=level)
             newExercise.save()
-            (message, result) = createExerciseDirectory(newExercise)
-
-            if not result:
+            # (message, result) = createExerciseDirectory(newExercise)
+            if not createExerciseRootDirectory(newExercise):
                 print("Nie udalo sie utworzyc folderu dla obiektu Exercise")
                 return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
 
@@ -254,7 +253,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             print("Pobier cwiczenie")
             exerciseTodelete = Exercise.objects.filter(pk=pk).get()
             print("Pobieram sciezke do folderu z cwiczeniem")
-            pathToExercise = getExerciseDirectoryPath(exerciseTodelete)
+            pathToExercise = getExerciseDirectoryRootPath(exerciseTodelete)
             print("Usuwam folder - " + pathToExercise)
             if os.path.exists(pathToExercise):
                 shutil.rmtree(pathToExercise)
@@ -309,7 +308,8 @@ class TestViewSet(viewsets.ModelViewSet):
                 exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])
                 testToCreate.exercises.add(exercise)
             
-            createTestDirectory(testToCreate)
+            #createTestDirectory(testToCreate)
+            createTestRootDirectory(testToCreate)
             testToCreate.save()
 
         except Exception as e:
