@@ -23,6 +23,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 
 
+class SolutionTypeView(APIView):
+    def get(self, request):
+        solutionsTypes = SolutionType.objects.all()
+        solTypesSerializer = SolutionTypeSerializer(solutionsTypes, many=True)
+        return Response(solTypesSerializer.data)
+
 class LevelView(APIView):
     def get(self, request):
         levels = Level.objects.all()
