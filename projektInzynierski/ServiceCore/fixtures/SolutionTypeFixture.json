@@ -1,0 +1,23 @@
+[
+    {
+        "model": "ServiceCore.SolutionType",
+        "pk": 1,
+        "fields": {
+            "name": "File"
+        }
+    },
+    {
+        "model": "ServiceCore.SolutionType",
+        "pk": 2,
+        "fields": {
+            "name": "Editor"
+        }
+    },
+    {
+        "model": "ServiceCore.SolutionType",
+        "pk": 3,
+        "fields": {
+            "name": "GitHub-Repository"
+        }
+    }
+]
