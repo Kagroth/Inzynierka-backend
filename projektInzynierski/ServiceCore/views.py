@@ -538,4 +538,15 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
         newSolution, created = Solution.objects.update_or_create(task=task, user=request.user, pathToFile=fs.location, rate=2)
         newSolution.save()
+
+        solutionFile = open(os.path.join(fs.location, "result.txt"), "r")
+        
+        for line in solutionFile.readlines():
+            if len(line) == 1:
+                continue
+            testResults.append(line)
+    
+        
+        solutionFile.close()
+
         return Response({"message": "Pomyslnie zapisano rozwiazanie", "test_results": testResults})
