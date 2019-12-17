@@ -2,6 +2,7 @@ import os
 import subprocess
 import shutil
 
+from ServiceCore.solution_executor import *
 from ServiceCore.utils import *
 from ServiceCore.unit_tests_utils import create_unit_tests
 
@@ -389,6 +390,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         print(data)
         taskType = None
         newTask = None
+        solutionType = None
 
         try:            
             taskType = TaskType.objects.get(name=data['taskType'])
@@ -396,7 +398,8 @@ class TaskViewSet(viewsets.ModelViewSet):
             if taskType.name == 'Test':
                 test = Test.objects.get(pk=data['exercise']['pk'])
             else:
-                exercise = Exercise.objects.get(pk=data['exercise']['pk'])
+                exercise = Exercise.objects.get(pk=data['exercise']['pk'])            
+            
             groups = []
 
             for groupElem in data['groups']:
@@ -409,6 +412,9 @@ class TaskViewSet(viewsets.ModelViewSet):
                 newTask = Task.objects.create(taskType=taskType, test=test, title=data['title'], author=request.user)
             else:    
                 newTask = Task.objects.create(taskType=taskType, exercise=exercise, title=data['title'], author=request.user)
+
+            solutionType = SolutionType.objects.get(name=data['solutionType']['name'])
+            newTask.solutionType = solutionType
 
             newTask.save()
 
@@ -479,10 +485,24 @@ class SolutionViewSet(viewsets.ModelViewSet):
         print(data)
         print(data['file'])
         print(request.FILES)
+        print(data['solutionType'])     
 
         task = Task.objects.get(pk=data['taskPk'])
         exercise = task.exercise
         fileToSave = None
+        
+        solExecutor = SolutionExecutor()
+        solExecutor.configure(request.user, task, data)
+        (result, message) = solExecutor.run()
+
+        print(result)
+        print(message)
+
+        return Response({"message": message, "test_results": solExecutor.testsResult})
+        '''
+        #if task.taskType.name == 'Exercise':
+        #    if data['solutionType'] == 'File':
+                
 
         if task.solutionType == SolutionType.objects.get(name="File"):
             fileToSave = request.FILES['file']
@@ -550,3 +570,4 @@ class SolutionViewSet(viewsets.ModelViewSet):
         solutionFile.close()
 
         return Response({"message": "Pomyslnie zapisano rozwiazanie", "test_results": testResults})
+        '''
