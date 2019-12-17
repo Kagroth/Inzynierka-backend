@@ -33,10 +33,21 @@ class SolutionExecutor():
         if self.solutionType.name == 'File':
             # rozwiazanie nadeslane przez plik
             self.solutionsToRun = self.solutionData['file']
+            
+            if self.solutionsToRun is None:
+                print("Nie podano zadnego pliku")
+                return
+
+            # sprawdzanie czy przyslany plik ma poprawne rozszerzenie
+            extensionToCheck = self.task.exercise.language.allowed_extension
+
+            if not self.solutionsToRun.name.endswith(extensionToCheck):
+                print("Niepoprawny format pliku")
+                return
 
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = 'solution.py'
+                self.solutionsToRun.name = 'solution' + extensionToCheck
                 destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
 
                 if os.path.isfile(destinatedPath):
@@ -54,6 +65,7 @@ class SolutionExecutor():
                             # skopiowanie unit testow 
                             copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
                             os.popen(copyCommand)
+                           
 
 
     def configureRuntime(self, language):
@@ -61,7 +73,7 @@ class SolutionExecutor():
             self.testCommand = ['python', '-m', 'unittest', 'discover', '-v', '-s', self.fs.location]
             self.readyToRunSolution = True
         else:
-            self.testCommand = "Dupa"
+            self.testCommand = None
             self.readyToRunSolution = False
 
     def isReadyToRunSolution(self):
