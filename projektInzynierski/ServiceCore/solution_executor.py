@@ -24,7 +24,10 @@ class SolutionExecutor():
 
         if task.taskType == TaskType.objects.get(name="Exercise"):
             self.configureForExercise()
-            self.configureRuntime(task.exercise.language) 
+            self.configureRuntime(task.exercise.language)
+        else:
+            self.configureForTest()
+            self.configureRuntime(task.test.exercises.get(pk=self.solutionData['exercisePk']).language)         
    
 
     def configureForExercise(self):
@@ -55,19 +58,62 @@ class SolutionExecutor():
                 
                 self.fs.save(self.solutionsToRun.name, self.solutionsToRun)
             
-            exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
-
-            # kopiowanie unit testow z katalogu Root Exercise do Root Solution
-            if os.path.isdir(exercisePath):
-                for subdir, dirs, files in os.walk(exercisePath):
-                    for file in files:
-                        if os.path.isfile(os.path.join(subdir, file)):
-                            # skopiowanie unit testow 
-                            copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
-                            os.popen(copyCommand)
+            
                            
+        elif self.solutionType.name == 'Editor':
+            # rozwiazanie nadeslane przez edytor
+            self.solutionsToRun = self.solutionData['solution']
+            
+            if self.solutionsToRun is None:
+                print("Nie przyslano rozwiazania")
+                return
+            
+            solutionExtension = self.task.exercise.language.allowed_extension
 
+            # tworze plik z rozwiazaniem
+            for group in self.task.assignedTo.all():
+                self.fs.location = getUserSolutionPath(self.task, group, self.user)
+                print(self.fs.location)
+                solutionFileName = 'solution' + solutionExtension
+                destinatedPath = os.path.join(self.fs.location, solutionFileName)
 
+                with open(destinatedPath, 'w+') as solution_file:
+                    solution_file.write(self.solutionsToRun)
+            
+
+        # pobranie sciezki do glownego katalogu cwiczenia i przekopiowanie z niego unit testow
+        exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
+        self.copyUnitTestsToSolutionDir(exercisePath)
+        
+
+    def configureForTest(self):
+        self.solutionType = SolutionType.objects.get(name=self.solutionData['solutionType'])
+
+        if self.solutionType.name == 'Editor':
+            # rozwiazanie nadeslane przez edytor
+            self.solutionsToRun = self.solutionData['solution']
+            
+            if self.solutionsToRun is None:
+                print("Nie przyslano rozwiazania")
+                return
+            
+            # solutionExtension = self.task.exercise.language.allowed_extension
+            solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.allowed_extension
+
+            # tworze plik z rozwiazaniem
+            for group in self.task.assignedTo.all():
+                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+                print(self.fs.location)
+                solutionFileName = 'solution' + solutionExtension
+                destinatedPath = os.path.join(self.fs.location, solutionFileName)
+
+                with open(destinatedPath, 'w+') as solution_file:
+                    solution_file.write(self.solutionsToRun)
+
+            # pobranie sciezki do glownego katalogu cwiczenia i przekopiowanie z niego unit testow
+            exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+            self.copyUnitTestsToSolutionDir(exercisePath)
+   
     def configureRuntime(self, language):
         if language.name == "Python":
             self.testCommand = ['python', '-m', 'unittest', 'discover', '-v', '-s', self.fs.location]
@@ -104,4 +150,13 @@ class SolutionExecutor():
 
         return (True, "Testowanie zakonczone")                                                                        
 
-        
+
+    def copyUnitTestsToSolutionDir(self, exercisePath):
+        # kopiowanie unit testow z katalogu Root Exercise do Root Solution
+        if os.path.isdir(exercisePath):
+            for subdir, dirs, files in os.walk(exercisePath):
+                for file in files:
+                    if os.path.isfile(os.path.join(subdir, file)):
+                        # skopiowanie unit testow 
+                        copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
+                        os.popen(copyCommand)
