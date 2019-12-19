@@ -483,8 +483,6 @@ class SolutionViewSet(viewsets.ModelViewSet):
     def create(self, request):
         data = request.data
         print(data)
-        print(data['file'])
-        print(request.FILES)
         print(data['solutionType'])     
 
         task = Task.objects.get(pk=data['taskPk'])
