@@ -108,14 +108,23 @@ def getTaskSolutionsDirectoryName(task):
     # funkcja zwraca nazwe folderu w ktorym znajduja sie rozwiazania zadania 'task'
     return task.title.replace(" ", "") + '-' + task.author.username.replace(" ", "") + '-' + str(task.pk)    
 
-def getUserSolutionPath(task, group, user):
+def getUserSolutionPath(task, group, user, exercise=None):
     if task.taskType.name == "Exercise":    
         taskDirName = getTaskSolutionsDirectoryName(task)
         groupName = group.name + '-' + str(group.pk)
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
         cwd = os.getcwd()
 
-        return os.path.join(cwd, taskDirName, groupName, userName)
+        return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName)
+    else:
+        taskDirName = getTaskSolutionsDirectoryName(task)
+        groupName = group.name + '-' + str(group.pk)
+        userName = user.username.replace(" ", "") + '-' + str(user.pk)
+        cwd = os.getcwd()
+
+        return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
+
+    
 
 
 def createExerciseSolutionDirectory(task):
