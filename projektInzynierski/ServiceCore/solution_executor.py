@@ -51,7 +51,12 @@ class SolutionExecutor():
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
                 self.solutionsToRun.name = 'solution' + extensionToCheck
-                destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
+                destinatedPath = None
+
+                if self.task.exercise.language.name == 'Java':
+                    destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionsToRun.name)
+                else:
+                    destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
 
                 if os.path.isfile(destinatedPath):
                     os.remove(destinatedPath)
