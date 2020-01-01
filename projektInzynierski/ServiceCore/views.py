@@ -241,7 +241,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                                                   content=data['content'],
                                                   level=level)
             newExercise.save()
-            # (message, result) = createExerciseDirectory(newExercise)
+
             if not createExerciseRootDirectory(newExercise):
                 print("Nie udalo sie utworzyc folderu dla obiektu Exercise")
                 return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
@@ -497,75 +497,3 @@ class SolutionViewSet(viewsets.ModelViewSet):
         print(message)
 
         return Response({"message": message, "test_results": solExecutor.testsResult})
-        '''
-        #if task.taskType.name == 'Exercise':
-        #    if data['solutionType'] == 'File':
-                
-
-        if task.solutionType == SolutionType.objects.get(name="File"):
-            fileToSave = request.FILES['file']
-
-            if fileToSave is None:
-                return Response({"message": "Nie przeslano pliku"})
-
-            allowed_extension = task.exercise.language.allowed_extension
-            print(allowed_extension)
-
-            if not fileToSave.name.endswith(allowed_extension):
-                return Response({"message": "Niepoprawny format pliku"})
-
-        fileToSave = request.FILES['file']
-        
-        fs = FileSystemStorage()
-
-        for group in task.assignedTo.all():
-            fs.location = getUserSolutionPath(task, group, request.user)
-            fileToSave.name = 'solution.py'
-            destinatedPath = os.path.join(fs.location, fileToSave.name)
-
-            if os.path.isfile(destinatedPath):
-                os.remove(destinatedPath)
-             
-            fs.save(fileToSave.name, fileToSave)
-
-        exercisePath = getExerciseDirectoryRootPath(exercise)
-        testResults = []
-
-        if os.path.isdir(exercisePath):
-            for subdir, dirs, files in os.walk(exercisePath):
-                for file in files:
-                    if os.path.isfile(os.path.join(subdir, file)):
-                        print (os.path.join(subdir, file))
-                        # skopiowanie unit testow 
-                        copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(fs.location, file))
-                        print(copyCommand)
-                        print("")
-                        os.popen(copyCommand)
-                        # polecenie uruchamiajace testy, mozna wyniesc po za petle
-                        test_command = 'python -m unittest discover -v -s ' + fs.location
-                        print(test_command)
-                        rfile = open(os.path.join(fs.location, "result.txt"), "w")
-                        # uruchomienie testow
-                        process = subprocess.run(test_command, capture_output=True)
-                        print(process.returncode)
-                        print(process.stdout)
-                        print(process.stderr.decode("utf-8"))
-                        # zapis wyniku testow do pliku results.txt
-                        rfile.write(process.stderr.decode("utf-8"))
-                        rfile.close()
-
-        newSolution, created = Solution.objects.update_or_create(task=task, user=request.user, pathToFile=fs.location, rate=2)
-        newSolution.save()
-
-        solutionFile = open(os.path.join(fs.location, "result.txt"), "r")
-        
-        for line in solutionFile.readlines():
-            if len(line) == 1:
-                continue
-            testResults.append(line)
-    
-        
-        solutionFile.close()
-
-        return Response({"message": "Pomyslnie zapisano rozwiazanie", "test_results": testResults})
-        '''
