@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # Create your models here.
 
@@ -91,6 +92,7 @@ class TaskType(models.Model):
 #   - exercise - klucz powaizany z obiektem typu Exercise (zalezne od taskType)
 #   - test - klucz powiazany z obiektem typu Test (zalezne od taskType)
 #   - isActive - czy jest aktywny
+#   - created_at - data utworzenia zadania
 class Task(models.Model):
     author = models.ForeignKey(User, related_name="my_tasks", blank=True, null=True, on_delete=models.CASCADE)
     taskType = models.ForeignKey(TaskType, null=True, on_delete=models.CASCADE)
@@ -99,6 +101,7 @@ class Task(models.Model):
     exercise = models.ForeignKey(Exercise, null=True, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, blank=True, null=True, on_delete=models.CASCADE)
     isActive = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.author.username + " - " + self.taskType.name + " - " + self.title
