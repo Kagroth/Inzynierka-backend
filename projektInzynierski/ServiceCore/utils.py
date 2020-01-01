@@ -1,6 +1,7 @@
 import os
 from distutils.dir_util import copy_tree
 
+EXERCISES_TEMPLATES_DIRECTORY_ROOT = "exercises_templates"
 EXERCISES_DIRECTORY_ROOT = "exercises"
 TESTS_DIRECTORY_ROOT = "exercises_tests"
 SOLUTIONS_DIRECTORY_ROOT = "solutions"
@@ -27,12 +28,23 @@ def getExerciseDirectoryRootPath(exercise):
 
 def createExerciseRootDirectory(exercise):
     # funkcja tworzy folder dla konkretnego cwiczenia w folderze glownym dla cwiczen
+
     directoryName = getExerciseDirectoryName(exercise)
     cwd = os.getcwd()
-    
+
     pathToExercise = os.path.join(cwd, EXERCISES_DIRECTORY_ROOT, directoryName)
 
-    return createDirectory(pathToExercise)
+    if exercise.language.name == 'Python':
+        return createDirectory(pathToExercise)
+    elif exercise.language.name == 'Java':
+        rootPathCreated = createDirectory(pathToExercise)
+
+        if rootPathCreated:
+            javaTemplateDirPath = os.path.join(cwd, EXERCISES_TEMPLATES_DIRECTORY_ROOT, exercise.language.name.lower())
+            print(javaTemplateDirPath)
+            copy_tree(javaTemplateDirPath, pathToExercise) # skopiowanie templatki do folderu z cwiczeniem
+        
+        return rootPathCreated
 
 def createExerciseDirectory(exercise, relPath):
     # funkcja tworzy folder dla cwiczenia exercise w lokalizacji relPath
@@ -115,6 +127,9 @@ def getUserSolutionPath(task, group, user, exercise=None):
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
         cwd = os.getcwd()
 
+        if task.exercise.language.name == 'Java':
+            return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, 'src', 'main', 'java')
+        
         return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName)
     else:
         taskDirName = getTaskSolutionsDirectoryName(task)
@@ -122,6 +137,9 @@ def getUserSolutionPath(task, group, user, exercise=None):
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
         cwd = os.getcwd()
 
+        if task.exercise.language.name == 'Java':
+            return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise), 'src', 'main', 'java')
+        
         return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
 
     
@@ -160,6 +178,12 @@ def createExerciseSolutionDirectory(task):
 
             if not created:
                 return False
+            
+            if task.exercise.language.name == 'Java':
+                javaTemplateDirPath = os.path.join(cwd, EXERCISES_TEMPLATES_DIRECTORY_ROOT, task.exercise.language.name.lower())
+                copy_tree(javaTemplateDirPath, pathToGroupMemberSolution)
+
+
 
     return True
 
