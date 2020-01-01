@@ -1,7 +1,8 @@
 from ServiceCore.utils import *
 from ServiceCore.models import UnitTest
 
-def create_unit_tests(exercise, unit_tests_data):
+
+def create_python_unit_tests(exercise, unit_tests_data):
     for index, unit_test in enumerate(unit_tests_data):
         print(unit_test)
         pathToExerciseDir = getExerciseDirectoryRootPath(exercise)
@@ -21,3 +22,16 @@ def test_first(self):\n")
             unit_test_file.write("\nif __name__ == '__main__':\n\tunittest.main()")
             newUnitTest = UnitTest.objects.create(exercise=exercise, pathToFile=pathToFile, content=unit_test)
             newUnitTest.save()
+
+def create_java_unit_tests(exercise, unit_tests_data):
+    pass
+
+def create_unit_tests(exercise, unit_tests_data):
+    if exercise.language.name == 'Python':       
+        create_python_unit_tests(exercise, unit_tests_data)
+    elif exercise.language.name == 'Java':
+        print("Tu beda twrzone unit testy dla projektu Java")
+        pass
+    else:
+        print("Nie da sie utworzyc unit testow dla podanego jezyka")
+
