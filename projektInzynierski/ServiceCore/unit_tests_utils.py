@@ -12,7 +12,7 @@ def create_python_unit_tests(exercise, unit_tests_data):
         with open(pathToFile, "w+") as unit_test_file:
             unit_test_file.write("import unittest \n\
 import sys \n\
-from solution import * \n\n\
+from Solution import * \n\n\
 class FirstTest(unittest.TestCase):\n\t\
 def test_first(self):\n")
             for line in unit_test.split("\n"):
