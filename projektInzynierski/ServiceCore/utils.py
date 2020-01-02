@@ -127,8 +127,8 @@ def getUserSolutionPath(task, group, user, exercise=None):
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
         cwd = os.getcwd()
 
-        if task.exercise.language.name == 'Java':
-            return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, 'src', 'main', 'java')
+        #if task.exercise.language.name == 'Java':
+        #    return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, 'src', 'main', 'java')
         
         return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName)
     else:
