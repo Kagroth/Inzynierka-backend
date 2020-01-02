@@ -50,7 +50,8 @@ class SolutionExecutor():
 
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = 'solution' + extensionToCheck
+                print("A" + self.fs.location)
+                self.solutionsToRun.name = 'Solution' + extensionToCheck
                 destinatedPath = None
 
                 if self.task.exercise.language.name == 'Java':
@@ -58,10 +59,12 @@ class SolutionExecutor():
                 else:
                     destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
 
+                print("B" + self.fs.location)
+
                 if os.path.isfile(destinatedPath):
                     os.remove(destinatedPath)
                 
-                self.fs.save(self.solutionsToRun.name, self.solutionsToRun)
+                self.fs.save(destinatedPath, self.solutionsToRun)
             
             
                            
@@ -88,7 +91,13 @@ class SolutionExecutor():
 
         # pobranie sciezki do glownego katalogu cwiczenia i przekopiowanie z niego unit testow
         exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
-        self.copyUnitTestsToSolutionDir(exercisePath)
+        dest = None
+
+        if self.task.exercise.language.name == 'Java':
+            exercisePath = os.path.join(exercisePath, 'src', 'test', 'java')
+            dest = os.path.join(self.fs.location, 'src', 'test', 'java')
+
+        self.copyUnitTestsToSolutionDir(exercisePath, dest)
         
 
     def configureForTest(self):
@@ -123,6 +132,9 @@ class SolutionExecutor():
         if language.name == "Python":
             self.testCommand = ['python', '-m', 'unittest', 'discover', '-v', '-s', self.fs.location]
             self.readyToRunSolution = True
+        elif language.name == "Java":
+            self.testCommand = ['mvn', 'clean', 'test']
+            self.readyToRunSolution = True
         else:
             self.testCommand = None
             self.readyToRunSolution = False
@@ -133,11 +145,20 @@ class SolutionExecutor():
     def run(self):
         if not self.isReadyToRunSolution():
             return (False, "Executor nie jest gotowy do uruchomienia")
-        
+
         with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
-            process = subprocess.run(self.testCommand, capture_output=True)
+            if self.task.taskType.name == 'Exercise':
+                if self.task.exercise.language.name == 'Java':
+                    os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
+
+            process = subprocess.run(self.testCommand, capture_output=True, shell=True)
+
+                          
+            result_file.write(process.stdout.decode("utf-8"))                           
             result_file.write(process.stderr.decode("utf-8"))
 
+            print(process.stdout.decode("utf-8"))
+            print(process.stderr.decode("utf-8"))
             newSolution, created = Solution.objects.update_or_create(task=self.task,
                                                                     user=self.user,
                                                                     pathToFile=self.fs.location,
@@ -152,16 +173,25 @@ class SolutionExecutor():
                 self.testsResult.append(line)   
 
         solutionFile.close()
+        
+        # powrot do glownego folderu
+        os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
         return (True, "Testowanie zakonczone")                                                                        
 
 
-    def copyUnitTestsToSolutionDir(self, exercisePath):
+    def copyUnitTestsToSolutionDir(self, exercisePath, destination=None):
         # kopiowanie unit testow z katalogu Root Exercise do Root Solution
         if os.path.isdir(exercisePath):
             for subdir, dirs, files in os.walk(exercisePath):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
-                        # skopiowanie unit testow 
-                        copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
+                        # skopiowanie unit testow
+                        copyCommand = ""
+                        if destination is not None:
+                            copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + destination
+                        else:
+                            copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
+                        print(destination)
+                        print(copyCommand)
                         os.popen(copyCommand)
