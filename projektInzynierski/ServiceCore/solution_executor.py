@@ -125,15 +125,27 @@ class SolutionExecutor():
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
                 print(self.fs.location)
-                solutionFileName = 'solution' + solutionExtension
-                destinatedPath = os.path.join(self.fs.location, solutionFileName)
+                solutionFileName = 'Solution' + solutionExtension
+                
+                destinatedPath = None
+
+                if self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.name == 'Java':
+                    destinatedPath = os.path.join(self.fs.location, solutionFileName)
+                else:
+                    destinatedPath = os.path.join(self.fs.location, solutionFileName)
 
                 with open(destinatedPath, 'w+') as solution_file:
                     solution_file.write(self.solutionsToRun)
 
             # pobranie sciezki do glownego katalogu cwiczenia i przekopiowanie z niego unit testow
             exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
-            self.copyUnitTestsToSolutionDir(exercisePath)
+            dest = None
+
+            if self.task.exercise.language.name == 'Java':
+                exercisePath = os.path.join(exercisePath, 'src', 'test', 'java')
+                dest = os.path.join(self.fs.location, 'src', 'test', 'java')
+
+            self.copyUnitTestsToSolutionDir(exercisePath, dest)
    
     def configureRuntime(self, language):
         if language.name == "Python":
