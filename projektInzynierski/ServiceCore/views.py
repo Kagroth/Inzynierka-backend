@@ -321,8 +321,11 @@ class TestViewSet(viewsets.ModelViewSet):
                 testToCreate.exercises.add(exercise)
             
             #createTestDirectory(testToCreate)
-            createTestRootDirectory(testToCreate)
-            testToCreate.save()
+            if createTestRootDirectory(testToCreate):
+                testToCreate.save()
+            else:
+                testToCreate.delete()
+                return Response({"message": "Nie udalo sie utworzyc testu - blad tworzenia katalogow"})
 
         except Exception as e:
             print(e)
