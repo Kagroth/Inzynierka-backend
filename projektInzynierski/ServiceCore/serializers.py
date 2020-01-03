@@ -3,8 +3,13 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from ServiceCore.models import *
 
-# SolutionType model serializer
+#UnitTest model serializer
+class UnitTestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnitTest
+        fields = ('pk', 'content')
 
+# SolutionType model serializer
 class SolutionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolutionType
