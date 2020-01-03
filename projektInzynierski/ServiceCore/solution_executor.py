@@ -82,8 +82,15 @@ class SolutionExecutor():
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
                 print(self.fs.location)
-                solutionFileName = 'solution' + solutionExtension
-                destinatedPath = os.path.join(self.fs.location, solutionFileName)
+                solutionFileName = 'Solution' + solutionExtension
+
+                destinatedPath = None
+
+                if self.task.exercise.language.name == 'Java':
+                    destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', solutionFileName)
+                else:
+                    destinatedPath = os.path.join(self.fs.location, solutionFileName)
+                
 
                 with open(destinatedPath, 'w+') as solution_file:
                     solution_file.write(self.solutionsToRun)
