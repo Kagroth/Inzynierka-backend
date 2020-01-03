@@ -138,19 +138,7 @@ def getUserSolutionPath(task, group, user, exercise=None):
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
         cwd = os.getcwd()
 
-        if exercise is not None:
-            if exercise.language.name == 'Java':
-                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise), 'src', 'main', 'java')
-            else:
-                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
-        else:            
-            if task.exercise.language.name == 'Java':
-                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise), 'src', 'main', 'java')
-            else:        
-                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
-        
-        
-    
+        return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise))   
 
 
 def createExerciseSolutionDirectory(task):
