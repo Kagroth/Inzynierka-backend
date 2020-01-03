@@ -83,7 +83,8 @@ def createTestRootDirectory(test):
                 exerciseRootPath = getExerciseDirectoryRootPath(exercise)
                 exerciseDirName = getExerciseDirectoryName(exercise)
                 exerciseInTestDirPath = os.path.join(pathToTest, exerciseDirName)
-
+                print("Bede kopiowal z: " + exerciseRootPath)
+                print("Do: " + exerciseInTestDirPath)
                 copy_tree(exerciseRootPath, exerciseInTestDirPath)
             else:
                 return False        
@@ -137,11 +138,18 @@ def getUserSolutionPath(task, group, user, exercise=None):
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
         cwd = os.getcwd()
 
-        if task.exercise.language.name == 'Java':
-            return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise), 'src', 'main', 'java')
+        if exercise is not None:
+            if exercise.language.name == 'Java':
+                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise), 'src', 'main', 'java')
+            else:
+                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
+        else:            
+            if task.exercise.language.name == 'Java':
+                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise), 'src', 'main', 'java')
+            else:        
+                return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
         
-        return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise)) 
-
+        
     
 
 
@@ -224,6 +232,10 @@ def createTestSolutionDirectory(task):
 
                 if not createDirectory(exerciseInTestPath):
                     return False
+                
+                if exercise.language.name == 'Java':
+                    exerciseRootPath = getExerciseDirectoryRootPath(exercise)
+                    copy_tree(exerciseRootPath, exerciseInTestPath)
 
     return True
 
