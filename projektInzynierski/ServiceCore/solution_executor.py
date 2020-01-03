@@ -130,7 +130,7 @@ class SolutionExecutor():
                 destinatedPath = None
 
                 if self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.name == 'Java':
-                    destinatedPath = os.path.join(self.fs.location, solutionFileName)
+                    destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', solutionFileName)
                 else:
                     destinatedPath = os.path.join(self.fs.location, solutionFileName)
 
@@ -141,7 +141,7 @@ class SolutionExecutor():
             exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
             dest = None
 
-            if self.task.exercise.language.name == 'Java':
+            if self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.name == 'Java':
                 exercisePath = os.path.join(exercisePath, 'src', 'test', 'java')
                 dest = os.path.join(self.fs.location, 'src', 'test', 'java')
 
@@ -169,6 +169,9 @@ class SolutionExecutor():
             if self.task.taskType.name == 'Exercise':
                 if self.task.exercise.language.name == 'Java':
                     os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
+            else:
+                if self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.name == 'Java':
+                    os.chdir(self.fs.location)
 
             process = subprocess.run(self.testCommand, capture_output=True, shell=True)
 
