@@ -187,14 +187,28 @@ class SolutionExecutor():
                                                                     rate=2)
             newSolution.save()
 
-        solutionFile = open(os.path.join(self.fs.location, "result.txt"), "r")
+        solutionFile = None
 
-        for line in solutionFile.readlines():
+        try:
+            if self.task.taskType.name == 'Exercise':
+                if self.task.exercise.language.name == 'Java':
+                    print("C - " + self.fs.location)
+                    solutionFile = open(os.path.join(self.fs.location, 'target', 'surefire-reports', 'Unit0Test.txt'), "r")
+                else:
+                    solutionFile = open(os.path.join(self.fs.location, "result.txt"), "r")
+            else: 
+                solutionFile = open(os.path.join(self.fs.location, "result.txt"), "r")
+            
+            for line in solutionFile.readlines():
                 if len(line) == 1:
                     continue
-                self.testsResult.append(line)   
+                self.testsResult.append(line) 
 
-        solutionFile.close()
+            solutionFile.close()
+        except Exception as e:
+            print(e)
+            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            return (False, "Nie udalo sie zapisac wynikow")
         
         # powrot do glownego folderu
         os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
