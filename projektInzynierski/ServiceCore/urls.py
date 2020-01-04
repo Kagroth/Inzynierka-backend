@@ -24,7 +24,6 @@ urlpatterns = [
     path('levels/', views.LevelView.as_view()),
     path('languages/', views.LanguageView.as_view()),
     path('solution_types/', views.SolutionTypeView.as_view()),
-    path('unit_tests/<int:exercisePk>', views.UnitTestView.as_view()),
     path('', include(router.urls)),
     #path('users/', views.ListUsers.as_view()),
     #path('groups/', views.ListGroup.as_view()),

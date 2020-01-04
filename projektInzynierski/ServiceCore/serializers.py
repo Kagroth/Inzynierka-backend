@@ -71,10 +71,11 @@ class ExerciseSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     language = LanguageSerializer()
     level = LevelSerializer()
+    unit_tests = UnitTestSerializer(many=True)
 
     class Meta:
         model = Exercise
-        fields = ('pk', 'author', 'title', 'language', 'content', 'level')
+        fields = ('pk', 'author', 'title', 'language', 'content', 'level', 'unit_tests')
 
 
 class TestSerializer(serializers.ModelSerializer):

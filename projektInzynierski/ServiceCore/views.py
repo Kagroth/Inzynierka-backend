@@ -21,17 +21,7 @@ from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.renderers import JSONRenderer
-
-class UnitTestView(APIView):
-    def get(self, request, exercisePk):
-        if exercisePk is None:
-            return Response({"message": "Nie udalo sie pobrac testow jednostkowych"})
-            
-        unit_tests = Exercise.objects.get(pk=exercisePk).unit_tests.all()
-        unit_tests_serializer = UnitTestSerializer(unit_tests, many=True)
-        return Response(unit_tests_serializer.data)
-        
+from rest_framework.renderers import JSONRenderer        
 
 class SolutionTypeView(APIView):
     def get(self, request):
