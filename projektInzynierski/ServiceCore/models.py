@@ -63,7 +63,7 @@ class Exercise(models.Model):
 #   - exercise - zadanie z ktorym test jest powiazany
 class UnitTest(models.Model):
     pathToFile = models.FilePathField(max_length=1024)
-    exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise, related_name="unit_tests", on_delete=models.CASCADE)
     content = models.CharField(max_length=2048, blank=True, null=True)
 
 # Klasa reprezentuje kolokwium, ktore sklada sie z kilku cwiczen
