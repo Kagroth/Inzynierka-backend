@@ -158,3 +158,43 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1)
 }
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '{asctime} {levelname} {module} {filename} {name} {funcName}  {message}',
+            'style': '{'
+        }
+    },
+
+    'handlers': {
+        'ServiceCore_File': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'D:\\Materialy\\Seminarium\\Inzynierka\\backend\\projektInzynierski\\logs\\debug.log',
+            'formatter': 'standard'
+        },
+        'file': {            
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'D:\\Materialy\\Seminarium\\Inzynierka\\backend\\projektInzynierski\\logs\\django.log',
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+        '': {
+            'handlers': ['ServiceCore_File'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },    
+    },
+}
