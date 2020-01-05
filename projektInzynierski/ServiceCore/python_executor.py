@@ -9,7 +9,7 @@ class PythonExecutor(SolutionExecutor):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.testCommand = self.testCommand = ['python', '-m', 'unittest', 'discover', '-v', '-s']
 
-    def configureForExercise(self):
+    def configureRuntime(self):
         self.solutionType = SolutionType.objects.get(name=self.solutionData['solutionType'])
         
         if self.solutionType.name == 'File':
@@ -30,34 +30,37 @@ class PythonExecutor(SolutionExecutor):
             # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                # print("A" + self.fs.location)
                 self.solutionsToRun.name = 'Solution' + extensionToCheck
                 
                 destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
-
-                # print("B" + self.fs.location)
 
                 if os.path.isfile(destinatedPath):
                     os.remove(destinatedPath)
                 
                 self.fs.save(destinatedPath, self.solutionsToRun)
-                
-                # update command - dodanie lokalizacji self.fs.location do polecenia 
-                self.testCommand.append(self.fs.location)
         
         elif self.solutionType.name == 'Editor':
             # rozwiazanie nadeslane przez edytor
             self.solutionsToRun = self.solutionData['solution']
-            
+
             if self.solutionsToRun is None:
                 self.logger.info("Nie przyslano rozwiazania")
                 return
             
-            solutionExtension = self.task.exercise.language.allowed_extension
+            solutionExtension = None
 
+            if self.task.taskType.name == 'Exercise':
+                solutionExtension = self.task.exercise.language.allowed_extension
+            else:
+                solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.allowed_extension
+            
             # tworze plik z rozwiazaniem
             for group in self.task.assignedTo.all():
-                self.fs.location = getUserSolutionPath(self.task, group, self.user)
+                if self.task.taskType.name == 'Exercise':
+                    self.fs.location = getUserSolutionPath(self.task, group, self.user)
+                else:
+                    self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+                
                 print(self.fs.location)
                 solutionFileName = 'Solution' + solutionExtension
                 
@@ -69,11 +72,19 @@ class PythonExecutor(SolutionExecutor):
                 except Exception as e:
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
+        # update command - dodanie lokalizacji self.fs.location do polecenia 
+        self.testCommand.append(self.fs.location)
+
         # pobranie sciezki do glownego katalogu cwiczenia i przekopiowanie z niego unit testow
-        exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
+        exercisePath = None
+
+        if self.task.taskType.name == 'Exercise':
+            exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
+        else:
+            exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
 
         self.copyUnitTestsToSolutionDir(exercisePath)
-
+    
     def copyUnitTestsToSolutionDir(self, exercisePath):
         # kopiowanie unit testow z katalogu Root Exercise do Root Solution
         if os.path.isdir(exercisePath):
@@ -110,14 +121,14 @@ class PythonExecutor(SolutionExecutor):
             return (False, "Nie udalo sie przetestowac kodu")
 
         try:
-            with open(os.path.join(self.fs.location, "result.txt"), "r") as solution_file:            
-                for line in solution_file.readlines():
+            with open(os.path.join(self.fs.location, "result.txt"), "r") as result_file:            
+                for line in result_file.readlines():
                     if len(line) == 1:
                         continue
                     self.testsResult.append(line) 
                 
         except Exception as e:
-            self.logger.info("Nie udalo sie zapisac wynikow testowania")
+            self.logger.info("Nie udalo sie odczytac wynikow testowania")
             return (False, "Nie udalo sie zapisac wynikow")
 
         self.logger.info("Testowanie rozwiazania pk=" + str(newSolution.pk) + " zakonczone pomyslnie")
