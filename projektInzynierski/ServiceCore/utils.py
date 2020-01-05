@@ -158,6 +158,7 @@ def createExerciseSolutionDirectory(task):
     if not createDirectory(pathToSolution):
         return False
 
+    # iterowanie po wszystkich grupach mimo, ze grupa powinna byc tylko 1
     for group in task.assignedTo.all():
         groupName = group.name + '-' + str(group.pk)
         pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
@@ -199,6 +200,7 @@ def createTestSolutionDirectory(task):
     if not createDirectory(pathToSolution):
         return False
     
+    # iterowanie po wszystkich grupach mimo, ze grupa powinna byc tylko 1
     for group in task.assignedTo.all():
         groupName = group.name + '-' + str(group.pk)
         pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
