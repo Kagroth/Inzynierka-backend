@@ -239,7 +239,9 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     
     # tworzenie cwiczenia
     def create(self, request):
-        logger.info("GENERUJE EXERCISE QUERYSET")
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         print(request.data)
         data = request.data
         print(data)
@@ -252,9 +254,11 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
         print()
         if not levels.filter(name=data['level']['name']).exists():
+            logger.info("Poziom " + data['level']['name'] + " nie istnieje")
             return Response({"message": "Podano niepoprawny poziom"})
 
         if not languages.filter(name=data['language']['name']).exists():
+            logger.info("Jezyk programowania " + data['language']['name'] + " nie istnieje")
             return Response({"message": "Podano niepoprawny jezyk programowania"})
 
         try:
@@ -266,44 +270,55 @@ class ExerciseViewSet(viewsets.ModelViewSet):
                                                   language=language,
                                                   content=data['content'],
                                                   level=level)
-            newExercise.save()
+           
 
             if not createExerciseRootDirectory(newExercise):
-                print("Nie udalo sie utworzyc folderu dla obiektu Exercise")
+                logger.info("Nie udalo sie utworzyc folderu dla obiektu Exercise")
                 return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
+            
+            newExercise.save()
 
+            logger.info("Cwiczenie zostalo utworzone")
+            
             create_unit_tests(newExercise, data['unitTests'])
 
         except Exception as e:
-            print(e)
-            print("Nie udalo sie utworzyc obiektu Exercise")
+            logger.info("Nie udalo sie utworzyc obiektu Exercise - " + e)
             return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
 
         return Response({"message": "Utworzono Exercise"})
     
     # usuwanie cwiczenia o podanym pk
     def destroy(self, request, pk=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         if pk is None:
+            logger.info("Nie podano klucza glownego cwiczenia ktore ma zostac usuniete")
             return Response({"message": "Nie podano klucza glownego cwiczenia do usuniecia"})
         
         try:
             if not Exercise.objects.filter(pk=pk).exists():
+                logger.info("Cwiczenie o pk=" + pk + " nie istnieje")
                 return Response({"message": "Takie cwiczenie nie istnieje"})
 
             print("Pobier cwiczenie")
+            logger.info("Pobranie cwiczenia o pk=" + pk)
             exerciseTodelete = Exercise.objects.filter(pk=pk).get()
-            print("Pobieram sciezke do folderu z cwiczeniem")
+            logger.info("Pobranie sciezki do folderu z cwiczeniem o pk=" + pk)
             pathToExercise = getExerciseDirectoryRootPath(exerciseTodelete)
-            print("Usuwam folder - " + pathToExercise)
+            
+            logger.info("Usuwanie folderu - " + pathToExercise)
+            
             if os.path.exists(pathToExercise):
                 shutil.rmtree(pathToExercise)
             else:
-                print("Nie ma takiego folderu")
-            print("Usuwam cwiczenie")
+                logger.info("Folder " + pathToExercise + " nie istnieje wiec nie mozna go usunac")
+
             exerciseTodelete.delete()   
-            print("usuniete")         
+            logger.info("Cwiczenie o pk=" + pk + " zostalo usuniete")         
         except Exception as e:
-            print(e)
+            logger.info("Nie udalo sie usunac cwiczenia o pk=" + pk + " - " + e)
             return Response({"message": "Nie udalo sie usunac cwiczenia"})
         
         return Response({"message": "Cwiczenie zostalo usuniete"})
