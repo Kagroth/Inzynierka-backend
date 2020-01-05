@@ -430,8 +430,13 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     # utworz zadanie
     def create(self, request):
+        # logger
+        logger = logging.getLogger(self.__class__.__name__)
+
+        # dane
         data = request.data
         print(data)
+
         taskType = None
         newTask = None
         solutionType = None
@@ -443,13 +448,8 @@ class TaskViewSet(viewsets.ModelViewSet):
                 test = Test.objects.get(pk=data['exercise']['pk'])
             else:
                 exercise = Exercise.objects.get(pk=data['exercise']['pk'])            
-            
-            groups = []
 
-            for groupElem in data['groups']:
-                group = Group.objects.get(pk=groupElem['pk'])
-                groups.append(group)
-
+            group = Group.objects.get(pk=data['group']['pk'])
             newTask = None
 
             if taskType.name == 'Test':
@@ -462,8 +462,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
             newTask.save()
 
-            for group in groups:
-                newTask.assignedTo.add(group)
+            newTask.assignedTo.add(group)
             
             newTask.save()
 
@@ -471,10 +470,11 @@ class TaskViewSet(viewsets.ModelViewSet):
             createDirectoryForTaskSolutions(newTask)
 
         except Exception as e:
-            print("Nie udalo sie utworzyc zadania")
             print(e)
+            logger.info("Nie udalo sie utworzyc zadania - " + str(e))
             return Response({"message": "Nie udalo sie utworzyc zadania"})
 
+        logger.info("Zadanie zostalo utworzone")
         return Response({"message": "Zadanie zostalo utworzone"})
 
 # viewset z rozwiazaniami zadan
