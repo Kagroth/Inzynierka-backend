@@ -1,27 +1,27 @@
 import os
 import subprocess
 import shutil
+import logging
 
+from ServiceCore.models import *
+from ServiceCore.serializers import *
 from ServiceCore.solution_executor import *
 from ServiceCore.utils import *
 from ServiceCore.unit_tests_utils import create_unit_tests
 
-from django.shortcuts import render
-from django.http.response import HttpResponse
-
 from django.contrib.auth.models import User
-from django.db.models import FilePathField
 from django.core.files.storage import FileSystemStorage
+from django.db.models import FilePathField
+from django.http.response import HttpResponse
+from django.shortcuts import render
 
-from ServiceCore.models import *
-
-from ServiceCore.serializers import *
-
-from rest_framework.views import APIView
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer        
+
+logger = logging.getLogger(__name__)
 
 class SolutionTypeView(APIView):
     def get(self, request):
