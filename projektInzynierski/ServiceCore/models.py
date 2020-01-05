@@ -131,6 +131,7 @@ class Solution(models.Model):
     task = models.ForeignKey(Task, related_name="solutions", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)
     rate = models.IntegerField()
+    github_link = models.CharField(max_length=4096, blank=True, null=True)
 
 
 
