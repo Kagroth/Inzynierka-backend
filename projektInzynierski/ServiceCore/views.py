@@ -21,24 +21,28 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer        
 
-logger = logging.getLogger(__name__)
-
 class SolutionTypeView(APIView):
     def get(self, request):
         solutionsTypes = SolutionType.objects.all()
         solTypesSerializer = SolutionTypeSerializer(solutionsTypes, many=True)
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Zwracam wszystkie obiekty SolutionType")
         return Response(solTypesSerializer.data)
 
 class LevelView(APIView):
     def get(self, request):
         levels = Level.objects.all()
         levelsSerializer = LevelSerializer(levels, many=True)
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Zwracam wszystkie obiekty Level")
         return Response(levelsSerializer.data)
 
 class LanguageView(APIView):
     def get(self, request):
         languages = Language.objects.all()
         languagesSerializer = LanguageSerializer(languages, many=True)
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Zwracam wszystkie obiekty Language")
         return Response(languagesSerializer.data)
 
 class ProfileView(APIView):
@@ -46,6 +50,8 @@ class ProfileView(APIView):
         print(username)
         profile = Profile.objects.get(user__username=username)
         profileSerializer = ProfileSerializer(profile)
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Zwracam profil uzytkownika: " + username)
         return Response(profileSerializer.data)
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -61,6 +67,9 @@ class UserViewSet(viewsets.ModelViewSet):
         serverError = "Blad serwera przy tworzeniu konta"
         successMessage = "Konto zostało utworzone"
 
+        # logger
+        logger = logging.getLogger(self.__class__.__name__)
+
         # dane requesta
         data = request.data
         userType = None
@@ -69,15 +78,16 @@ class UserViewSet(viewsets.ModelViewSet):
         if data['userType'] == "Student" or data['userType'] == "Teacher": 
             userType = UserType.objects.get(name=data['userType'])
         else:
+            logger.info("Tworzenie uzytkownika - podano nieprawidlowy rodzaj uzytkownika")
             return Response({"message": userCreationFailed})
 
         try:
             if User.objects.filter(username=data['username']).exists():
-                print(usernameAlreadyExists)
+                logger.info(usernameAlreadyExists)
                 return Response({"message": usernameAlreadyExists}, status=409)
             
             if User.objects.filter(email=data['email']).exists():
-                print(emailAlreadyExists)
+                logger.info(emailAlreadyExists)
                 return Response({"message": emailAlreadyExists})
 
             user = User.objects.create_user(username=data['username'],
@@ -87,17 +97,17 @@ class UserViewSet(viewsets.ModelViewSet):
                                         password=data['password'])
             user.save()
         except Exception as e:
-            print("Nie udalo się utworzyć obiektu typu User", e)
+            logger.info("Nie udalo się utworzyć obiektu typu User " + e)
             return Response({"message": serverError})
 
         try: 
             profile = Profile.objects.create(user=user, userType=userType)
             profile.save()
         except:
-            print("Nie udalo sie utworzyc obiektu typu Profile")
+            logger.info("Nie udalo sie utworzyc obiektu typu Profile")
             return Response({"message": serverError})
 
-        print(successMessage)
+        logger.info(successMessage)
         return Response({"message": successMessage})
 
  
@@ -128,6 +138,9 @@ class GroupViewSet(viewsets.ModelViewSet):
 
     # tworzenie nowej grupy
     def create(self, request):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         data = request.data
         
         if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
@@ -213,6 +226,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     
     # tworzenie cwiczenia
     def create(self, request):
+        logger.info("GENERUJE EXERCISE QUERYSET")
         print(request.data)
         data = request.data
         print(data)
