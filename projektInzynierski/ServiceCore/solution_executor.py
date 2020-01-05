@@ -24,12 +24,24 @@ class SolutionExecutor():
 
         if task.taskType == TaskType.objects.get(name="Exercise"):
             self.configureForExercise()
-            self.configureRuntime(task.exercise.language)
+            # self.configureRuntime(task.exercise.language)
         else:
             self.configureForTest()
-            self.configureRuntime(task.test.exercises.get(pk=self.solutionData['exercisePk']).language)         
-   
+            # self.configureRuntime(task.test.exercises.get(pk=self.solutionData['exercisePk']).language)
 
+    def configureForExercise(self):
+        pass
+
+    def configureForTest(self):
+        pass
+
+    def copyUnitTestsToSolutionDir(self):
+        pass
+    
+    def run(self):
+        pass
+
+    '''
     def configureForExercise(self):
         self.solutionType = SolutionType.objects.get(name=self.solutionData['solutionType'])
 
@@ -231,3 +243,4 @@ class SolutionExecutor():
                         print(destination)
                         print(copyCommand)
                         os.popen(copyCommand)
+    '''

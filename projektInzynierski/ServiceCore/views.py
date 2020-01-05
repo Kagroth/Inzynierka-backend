@@ -6,6 +6,8 @@ import logging
 from ServiceCore.models import *
 from ServiceCore.serializers import *
 from ServiceCore.solution_executor import *
+from ServiceCore.executor import *
+from ServiceCore.python_executor import *
 from ServiceCore.utils import *
 from ServiceCore.unit_tests_utils import create_unit_tests
 
@@ -532,12 +534,19 @@ class SolutionViewSet(viewsets.ModelViewSet):
         task = Task.objects.get(pk=data['taskPk'])
         exercise = task.exercise
         fileToSave = None
+
+        concreteExecutor = None
+
+        if exercise.language.name == 'Python':
+            concreteExecutor = PythonExecutor()
+
+        concreteExecutor.configure(request.user, task, data)
         
-        solExecutor = SolutionExecutor()
-        solExecutor.configure(request.user, task, data)
-        (result, message) = solExecutor.run()
+        solExecutor = Executor(concreteExecutor)
+        
+        (result, message) = solExecutor.execute()
 
         print(result)
         print(message)
 
-        return Response({"message": message, "test_results": solExecutor.testsResult})
+        return Response({"message": message, "test_results": solExecutor.get_result()})
