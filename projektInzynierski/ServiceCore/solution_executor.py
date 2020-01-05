@@ -22,17 +22,9 @@ class SolutionExecutor():
         self.task = task
         self.solutionData = solutionData
 
-        if task.taskType == TaskType.objects.get(name="Exercise"):
-            self.configureForExercise()
-            # self.configureRuntime(task.exercise.language)
-        else:
-            self.configureForTest()
-            # self.configureRuntime(task.test.exercises.get(pk=self.solutionData['exercisePk']).language)
+        self.configureRuntime()
 
-    def configureForExercise(self):
-        pass
-
-    def configureForTest(self):
+    def configureRuntime(self):
         pass
 
     def copyUnitTestsToSolutionDir(self):

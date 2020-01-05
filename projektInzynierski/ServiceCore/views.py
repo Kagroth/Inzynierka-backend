@@ -8,6 +8,7 @@ from ServiceCore.serializers import *
 from ServiceCore.solution_executor import *
 from ServiceCore.executor import *
 from ServiceCore.python_executor import *
+from ServiceCore.java_executor import *
 from ServiceCore.utils import *
 from ServiceCore.unit_tests_utils import create_unit_tests
 
@@ -526,19 +527,26 @@ class SolutionViewSet(viewsets.ModelViewSet):
     # tworzenie rozwiazania i testowanie:
     # aktualne obslugiwane metody rozwiazania:
     #   - przeslanie pliku
+    #   - edytor
     def create(self, request):
         data = request.data
         print(data)
         print(data['solutionType'])     
 
         task = Task.objects.get(pk=data['taskPk'])
-        exercise = task.exercise
-        fileToSave = None
+        exercise = None
+
+        if task.taskType.name == 'Exercise':
+            exercise = task.exercise
+        else:
+            exercise = task.test.exercises.get(pk=data['exercisePk'])
 
         concreteExecutor = None
 
         if exercise.language.name == 'Python':
             concreteExecutor = PythonExecutor()
+        elif exercise.language.name == 'Java':
+            concreteExecutor = JavaExecutor()
 
         concreteExecutor.configure(request.user, task, data)
         
