@@ -144,7 +144,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         data = request.data
         
         if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
-            print("Juz posiadasz grupe o takiej nazwie!")
+            logger.info("Grupa o nazwie " + data['groupName'] + " juz istnieje")
             return Response({"message": "Juz posiadasz grupe o takiej nazwie!"})
         
         newGroup = None
@@ -156,20 +156,26 @@ class GroupViewSet(viewsets.ModelViewSet):
                 user = User.objects.get(username=userToAddToGroup['username'])
                 newGroup.users.add(user)
             newGroup.save()
+            logger.info("Grupa " + newGroup.name + " zostala utworzona")
         except:
-            print("Nastąpił błąd podczas tworzenia grupy")
+            logger.info("Nastapil blad podczas tworzenia grupy")
             return Response({"message": "Nastąpił błąd podczas tworzenia grupy"})
 
         return Response({"message": "Grupa została utworzona"})
     
     # aktualizacja grupy o podanym pk
     def update(self, request, pk=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         data = request.data
 
         if pk is None:
+            logger.info("Nie podano parametru pk")
             return Response({"message": "Nie podano parametru pk"})
 
         if not Group.objects.filter(name=data['oldName'], owner=request.user).exists():
+            logger.info("Grupa o nazwie " + data['oldName'] + " nie istnieje")
             return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"})
         
         try:
@@ -185,23 +191,30 @@ class GroupViewSet(viewsets.ModelViewSet):
                 user = User.objects.get(username=userToRemoveFromGroup['username'])
                 groupToUpdate.users.remove(user)
             groupToUpdate.save()
+            logger.info("Grupa " + groupToUpdate + " zostala zaktualizowana")
         except Exception as e:
-            print(e)
+            logger.info("Nastapil blad podczas aktualizacji grupy " + data['oldName'] + " - " + e)
             return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"})
         
         return Response({"message": "Grupa została zaktualizowana"})
 
     # usuniecie grupy o podanym pk
     def destroy(self, request, pk=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         data = request.data
 
         if pk is None:
+            logger.info("Nie podano parametru pk")
             return Response({"message": "Nie podano parametru pk"})
 
         if Group.objects.filter(pk=pk).exists():
             Group.objects.filter(pk=pk).delete()
+            logger.info("Grupa o pk=" + pk + " zostala usunieta")
             return Response({"message": "Grupa zostala usunieta"})
         else:
+            logger.info("Nie udalo sie usunac grupy o pk=" + pk)
             return Response({"message": "Nie udalo sie usunac grupy"})
 
 
