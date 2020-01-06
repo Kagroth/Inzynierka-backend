@@ -76,7 +76,7 @@ class PythonExecutor(SolutionExecutor):
             '''
                 zmiana katalogu - chdir
                 git init
-                git add remote origin repository
+                git remote add origin repository
                 git pull origin master
                 git get first py file
                 rename to Solution.py
