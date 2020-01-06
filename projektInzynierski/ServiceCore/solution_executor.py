@@ -33,6 +33,9 @@ class SolutionExecutor():
     def run(self):
         pass
 
+    def isReady(self):
+        return self.readyToRunSolution
+
     '''
     def configureForExercise(self):
         self.solutionType = SolutionType.objects.get(name=self.solutionData['solutionType'])
