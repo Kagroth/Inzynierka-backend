@@ -72,6 +72,59 @@ class PythonExecutor(SolutionExecutor):
                 except Exception as e:
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
+        elif self.solutionType.name == 'GitHub-Repository':
+            '''
+                zmiana katalogu - chdir
+                git init
+                git add remote origin repository
+                git pull origin master
+                git get first py file
+                rename to Solution.py
+                zmiana katalogu na katalog glowny
+            '''
+            solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)
+            self.fs.location = solution_path
+            self.logger.info("Zmiana katalogu roboczego na " + solution_path)
+            os.chdir(solution_path)
+
+            git_commands = [
+                ['git', 'init'],
+                ['git', 'remote', 'add', 'origin', self.solutionData['repository']],
+                ['git', 'pull', 'origin', 'master']
+            ]
+
+            for git_command in git_commands:
+                process = subprocess.run(git_command, capture_output=True, shell=True)
+                self.logger.info("Wynik wykonania instrukcji " + \
+                                " ".join(git_command) + \
+                                " - " + str(process.stdout.decode("utf-8")) + \
+                                str(process.stderr.decode("utf-8")))
+            
+            # jezeli w folderze nie ma pliku o 'nazwie Solution.py'
+            # to bierzemy 1 plik o rozszerzeniu allowed extension (.py) i zmieniamy 
+            # jego nazwe na Solution.py
+            files = os.listdir(path=os.getcwd())
+
+            if "Solution.py" not in files:
+                for f in files:
+                    if f.endswith(self.task.exercise.language.allowed_extension):
+                        old_filename_path = os.path.join(os.getcwd(), f)
+                        new_filename_path = os.path.join(os.getcwd(), "Solution.py")
+                        
+                        if os.path.isfile(new_filename_path):
+                            os.remove(new_filename_path)
+                        
+                        os.rename(old_filename_path, new_filename_path)
+                        break
+
+            self.logger.info("Powrot do katalogu glownego")
+            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            
+        else:
+            self.logger.info("Niepoprawny rodzaj rozwiazania - " + self.solutionType.name)
+            self.readyToRunSolution = False
+            return
+
         # update command - dodanie lokalizacji self.fs.location do polecenia 
         self.testCommand.append(self.fs.location)
 
@@ -84,6 +137,8 @@ class PythonExecutor(SolutionExecutor):
             exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
 
         self.copyUnitTestsToSolutionDir(exercisePath)
+
+        self.readyToRunSolution = True
     
     def copyUnitTestsToSolutionDir(self, exercisePath):
         # kopiowanie unit testow z katalogu Root Exercise do Root Solution
@@ -97,6 +152,9 @@ class PythonExecutor(SolutionExecutor):
                         os.popen(copyCommand)
     
     def run(self):
+        if not self.isReady():
+            self.logger.info("Executor nie jest gotowy do uruchomienia")
+
         newSolution = None
 
         try:
@@ -115,6 +173,9 @@ class PythonExecutor(SolutionExecutor):
                                                                         user=self.user,
                                                                         pathToFile=self.fs.location,
                                                                         rate=2)
+                if self.solutionType.name == 'GitHub-Repository':
+                    newSolution.github_link = self.solutionData['repository']
+                
                 newSolution.save()
         except Exception as e:
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
