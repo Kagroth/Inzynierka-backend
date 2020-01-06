@@ -167,6 +167,9 @@ class JavaExecutor(SolutionExecutor):
                                                                         user=self.user,
                                                                         pathToFile=self.fs.location,
                                                                         rate=2)
+                if self.solutionType.name == 'GitHub-Repository':
+                    newSolution.github_link = self.solutionData['repository']
+                    
                 newSolution.save()
         except Exception as e:            
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
