@@ -255,7 +255,11 @@ class ExerciseViewSet(viewsets.ModelViewSet):
         levels = Level.objects.all()
         languages = Language.objects.all()
 
-        print()
+        
+        if Exercise.objects.filter(title=data['title'], author=request.user).exists():
+            logger.info("Cwiczenie o tytule" + data['title'] + " juz istnieje")
+            return Response({"message": "Cwiczenie o takim tytule juz istnieje"}, status=400)
+
         if not levels.filter(name=data['level']['name']).exists():
             logger.info("Poziom " + data['level']['name'] + " nie istnieje")
             return Response({"message": "Podano niepoprawny poziom"})
@@ -277,7 +281,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
             if not createExerciseRootDirectory(newExercise):
                 logger.info("Nie udalo sie utworzyc folderu dla obiektu Exercise")
-                return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"})
+                return Response({"message": "Nie udalo sie utworzyc folderu dla obiektu Exercise"}, status=500)
             
             newExercise.save()
 
@@ -287,9 +291,9 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             logger.info("Nie udalo sie utworzyc obiektu Exercise - " + e)
-            return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"})
+            return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"}, status=500)
 
-        return Response({"message": "Utworzono Exercise"})
+        return Response({"message": "Utworzono Exercise"}, status=200)
     
     # usuwanie cwiczenia o podanym pk
     def destroy(self, request, pk=None):
