@@ -87,7 +87,7 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             if User.objects.filter(username=data['username']).exists():
                 logger.info(usernameAlreadyExists)
-                return Response({"message": usernameAlreadyExists}, status=409)
+                return Response({"message": usernameAlreadyExists}, status=400)
             
             if User.objects.filter(email=data['email']).exists():
                 logger.info(emailAlreadyExists)
@@ -148,7 +148,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         
         if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
             logger.info("Grupa o nazwie " + data['groupName'] + " juz istnieje")
-            return Response({"message": "Juz posiadasz grupe o takiej nazwie!"})
+            return Response({"message": "Juz posiadasz grupe o takiej nazwie!"}, status=400)
         
         newGroup = None
         
@@ -162,9 +162,9 @@ class GroupViewSet(viewsets.ModelViewSet):
             logger.info("Grupa " + newGroup.name + " zostala utworzona")
         except:
             logger.info("Nastapil blad podczas tworzenia grupy")
-            return Response({"message": "Nastąpił błąd podczas tworzenia grupy"})
+            return Response({"message": "Nastąpił błąd podczas tworzenia grupy"}, status=500)
 
-        return Response({"message": "Grupa została utworzona"})
+        return Response({"message": "Grupa została utworzona"}, status=200)
     
     # aktualizacja grupy o podanym pk
     def update(self, request, pk=None):
