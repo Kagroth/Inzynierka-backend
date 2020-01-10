@@ -464,6 +464,11 @@ class TaskViewSet(viewsets.ModelViewSet):
                 exercise = Exercise.objects.get(pk=data['exercise']['pk'])            
 
             group = Group.objects.get(pk=data['group']['pk'])
+            
+            if Task.objects.filter(title=data['title'], author=request.user).exists():
+                logger.info("Zadanie o tytule" + data['title'] + " juz istnieje")
+                return Response({"message": "Zadanie o takim tytule juz istnieje"}, status=400)
+            
             newTask = None
 
             if taskType.name == 'Test':
@@ -486,10 +491,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(e)
             logger.info("Nie udalo sie utworzyc zadania - " + str(e))
-            return Response({"message": "Nie udalo sie utworzyc zadania"})
+            return Response({"message": "Nie udalo sie utworzyc zadania"}, status=500)
 
         logger.info("Zadanie zostalo utworzone")
-        return Response({"message": "Zadanie zostalo utworzone"})
+        return Response({"message": "Zadanie zostalo utworzone"}, status=200)
 
 # viewset z rozwiazaniami zadan
 class SolutionViewSet(viewsets.ModelViewSet):
