@@ -353,12 +353,19 @@ class TestViewSet(viewsets.ModelViewSet):
     # utworz kolokwium
     # tu dopisac tworzenie folderow dla kolokwium
     def create(self, request):
+        #logger
+        logger = logging.getLogger(self.__class__.__name__)
+        
         print(request.data)
         data = request.data
         
         if data['title'] is None or data['exercises'] is None:
-            return Response({"message": "Nie podano wszystkich danych"})
+            return Response({"message": "Nie podano wszystkich danych"}, status=400)
 
+        if Test.objects.filter(title=data['title'], author=request.user).exists():
+            logger.info("Kolokwium o tytule" + data['title'] + " juz istnieje")
+            return Response({"message": "Kolokwium o takim tytule juz istnieje"}, status=400)
+        
         testToCreate = None
 
         try:
@@ -373,14 +380,14 @@ class TestViewSet(viewsets.ModelViewSet):
                 testToCreate.save()
             else:
                 testToCreate.delete()
-                return Response({"message": "Nie udalo sie utworzyc testu - blad tworzenia katalogow"})
+                return Response({"message": "Nie udalo sie utworzyc testu - blad tworzenia katalogow"}, status=500)
 
         except Exception as e:
             print(e)
             print("Nastąpił błąd podczas tworzenia testu")
-            return Response({"message": "Nastąpił błąd podczas tworzenia testu"})
+            return Response({"message": "Nastąpił błąd podczas tworzenia testu"}, status=500)
         
-        return Response({"message": "Utworzono Test"})
+        return Response({"message": "Utworzono Test"}, status=200)
     
     # usun kolokwium o podanym pk
     # tu dopisac usuwanie folderu
