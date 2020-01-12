@@ -421,24 +421,30 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskWithSolutionData
 
     def get_queryset(self):
+        logger = logging.getLogger(__name__)
         queryset = None
-        print(self.request.user)
+
         profile = Profile.objects.get(user=self.request.user)
 
+        logger.info("Uzytkownik " + str(self.request.user.username) + " - " + profile.userType.name + " pobiera zadania")
+
         if profile.userType.name == "Student":
-            queryset = Task.objects.all()
-            groups = self.request.user.membershipGroups.all()
+            groups = self.request.user.membershipGroups.all()            
 
             if groups.count() > 0:
+                queryset = groups[0].tasks.all()
+
                 for group in groups:
-                    queryset.filter(assignedTo=group)
+                    queryset = queryset.union(group.tasks.all())
+                
+                queryset = queryset.distinct()
+
             else:
                 queryset = queryset.none()
 
         else:
             queryset = self.request.user.my_tasks.all()
         
-        print(queryset)
         return queryset
 
 
