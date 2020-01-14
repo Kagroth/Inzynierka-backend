@@ -1,6 +1,7 @@
 
 import logging
 
+from ServiceCore.models import Solution, SolutionExercise, SolutionTest
 from ServiceCore.solution_executor import *
 
 class PythonExecutor(SolutionExecutor):
@@ -155,7 +156,7 @@ class PythonExecutor(SolutionExecutor):
         if not self.isReady():
             self.logger.info("Executor nie jest gotowy do uruchomienia")
 
-        newSolution = None
+        solution_exercise = None
 
         try:
             with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
@@ -169,14 +170,22 @@ class PythonExecutor(SolutionExecutor):
                 print(process.stdout.decode("utf-8"))
                 print(process.stderr.decode("utf-8"))
 
-                newSolution, created = Solution.objects.update_or_create(task=self.task,
-                                                                        user=self.user,
-                                                                        pathToFile=self.fs.location,
-                                                                        rate=2)
-                if self.solutionType.name == 'GitHub-Repository':
-                    newSolution.github_link = self.solutionData['repository']
+                main_solution_object = Solution.objects.get(task=self.task, user=self.user)
+                solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object,
+                                                        pathToFile=os.path.join(self.fs.location, 'Solution.py'))
                 
-                newSolution.save()
+                solution_exercise.save()
+
+                if self.task.taskType.name == 'Test':
+                    test_solution, created = SolutionTest.objects.update_or_create(solution=main_solution_object)
+                    solution_exercise.test = test_solution
+                    test_solution.save()
+                    solution_exercise.save()
+
+                if self.solutionType.name == 'GitHub-Repository':
+                    solution_exercise.github_link = self.solutionData['repository']
+                
+                solution_exercise.save()
         except Exception as e:
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
             return (False, "Nie udalo sie przetestowac kodu")
@@ -192,5 +201,5 @@ class PythonExecutor(SolutionExecutor):
             self.logger.info("Nie udalo sie odczytac wynikow testowania")
             return (False, "Nie udalo sie zapisac wynikow")
 
-        self.logger.info("Testowanie rozwiazania pk=" + str(newSolution.pk) + " zakonczone pomyslnie")
+        self.logger.info("Testowanie rozwiazania pk=" + str(solution_exercise.pk) + " zakonczone pomyslnie")
         return (True, "Testowanie zakonczone")  

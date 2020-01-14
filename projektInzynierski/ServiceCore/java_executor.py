@@ -1,6 +1,7 @@
 
 import logging
 
+from ServiceCore.models import Solution, SolutionExercise, SolutionTest
 from ServiceCore.solution_executor import *
 
 class JavaExecutor(SolutionExecutor):
@@ -149,7 +150,7 @@ class JavaExecutor(SolutionExecutor):
                         os.popen(copyCommand)
 
     def run(self):
-        newSolution = None
+        solution_exercise = None
         
         try:
             with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
@@ -163,14 +164,20 @@ class JavaExecutor(SolutionExecutor):
                 print(process.stdout.decode("utf-8"))
                 print(process.stderr.decode("utf-8"))
 
-                newSolution, created = Solution.objects.update_or_create(task=self.task,
-                                                                        user=self.user,
-                                                                        pathToFile=self.fs.location,
-                                                                        rate=2)
+                main_solution_object = Solution.objects.get(task=self.task, user=self.user)
+                solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object,
+                                                                        pathToFile=os.path.join(self.fs.location, 'src', 'main', 'java', 'Solution.java'))
+                
+                if self.task.taskType.name == 'Test':
+                    test_solution, created = SolutionTest.objects.update_or_create(solution=main_solution_object)
+                    solution_exercise.test = test_solution
+                    test_solution.save()
+                    solution_exercise.save()
+                
                 if self.solutionType.name == 'GitHub-Repository':
-                    newSolution.github_link = self.solutionData['repository']
-                    
-                newSolution.save()
+                    solution_exercise.github_link = self.solutionData['repository']
+                  
+                solution_exercise.save()
         except Exception as e:            
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
             return (False, "Nie udalo sie przetestowac kodu")
