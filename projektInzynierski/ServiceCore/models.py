@@ -127,12 +127,16 @@ class Group(models.Model):
 #   - user - autor rozwiazania
 #   - rate - ocena rozwaizania
 class Solution(models.Model):
-    pathToFile = models.FilePathField(max_length=1024)
     task = models.ForeignKey(Task, related_name="solutions", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)
-    rate = models.IntegerField()
+    user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)  
+
+class SolutionTest(models.Model):
+    solution = models.OneToOneField(Solution, on_delete=models.CASCADE)    
+    rate = models.IntegerField(blank=True, null=True)
+
+class SolutionExercise(models.Model):
+    solution = models.ForeignKey(Solution, on_delete=models.CASCADE)
+    test = models.ForeignKey(SolutionTest, related_name="exercises_solutions", blank=True, null=True, on_delete=models.CASCADE)
+    pathToFile = models.FilePathField(max_length=1024)
+    rate = models.IntegerField(blank=True, null=True)
     github_link = models.CharField(max_length=4096, blank=True, null=True)
-
-
-
-

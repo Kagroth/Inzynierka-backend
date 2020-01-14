@@ -155,5 +155,5 @@ class SolutionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Solution
-        fields = ('pk', 'user', 'task', 'rate')
+        fields = ('pk', 'user', 'task')
 
