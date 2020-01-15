@@ -128,14 +128,15 @@ class Group(models.Model):
 #   - rate - ocena rozwaizania
 class Solution(models.Model):
     task = models.ForeignKey(Task, related_name="solutions", on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)  
+    user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)
+    rate = models.IntegerField(blank=True, null=True)  
 
 class SolutionTest(models.Model):
-    solution = models.OneToOneField(Solution, on_delete=models.CASCADE)    
+    solution = models.OneToOneField(Solution, related_name="solution_test", on_delete=models.CASCADE)    
     rate = models.IntegerField(blank=True, null=True)
 
 class SolutionExercise(models.Model):
-    solution = models.ForeignKey(Solution, on_delete=models.CASCADE)
+    solution = models.ForeignKey(Solution, related_name="solution_exercise", on_delete=models.CASCADE)
     test = models.ForeignKey(SolutionTest, related_name="exercises_solutions", blank=True, null=True, on_delete=models.CASCADE)
     pathToFile = models.FilePathField(max_length=1024)
     rate = models.IntegerField(blank=True, null=True)
