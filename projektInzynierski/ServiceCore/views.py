@@ -501,6 +501,28 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         logger.info("Zadanie zostalo utworzone")
         return Response({"message": "Zadanie zostalo utworzone"}, status=200)
+    
+    def update(self, request, pk=None):
+        # logger
+        logger = logging.getLogger(self.__class__.__name__)
+        data = request.data
+
+        if data['mode'] == 'CLOSE':
+            # zamykanie zadania - niemozliwe bedzie wysylanie odpowiedzi
+            try:
+                taskToClose = Task.objects.get(pk=data['pk'])
+                taskToClose.isActive = False
+                taskToClose.save()
+
+                logger.info("Zamknieto zadanie o pk=" + str(data['pk']))
+
+                return Response({"message": "Zamknieto zadanie"}, status=200)
+            except Exception as e:
+                logger.info("Nie udalo sie zamknac zadania o pk=" + str(data['pk']) + ". Blad=" + str(e))
+
+                return Response({"message": "Nie udalo sie zamknac zadania"}, status=500)
+
+        return Response({"message": "UPDATE ZAKONCZONY"}, status=200)
 
 # viewset z rozwiazaniami zadan
 class SolutionViewSet(viewsets.ModelViewSet):
@@ -523,27 +545,33 @@ class SolutionViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         queryset = Solution.objects.all()
         solution = queryset.get(pk=pk)
-        # pobranie pierwszej grupy
-        print(solution.user.membershipGroups.all()[:1].get())
+        # pobranie pierwszej grupy - niepotrzebne 
+        # print(solution.user.membershipGroups.all()[:1].get())
+
         serializer = SolutionSerializer(solution)
         newdict = {}
-        solutionPath = ""
+        solutionValue = None
 
-        for group in solution.user.membershipGroups.all():
-            solutionPath = getUserSolutionPath(solution.task,
-                                           group,
-                                           solution.user)
+        if solution.task.taskType.name == 'Exercise':
+            solution_file_path = solution.solution_exercise.get().pathToFile
 
-            solutionPath = os.path.join(solutionPath, 'solution.py')
-            print(solutionPath)
-            if os.path.isfile(solutionPath):
-                f = open(solutionPath, "r")
-                newdict['solutionValue'] = f.read()
-                f.close()        
-                break
-        
+            if os.path.isfile(solution_file_path):
+                with open(solution_file_path, 'r') as f:
+                    solutionValue = f.read()
+        else:
+            solutionValue = []
+
+            for solution_exercise in solution.solution_test.exercises_solutions.all():
+                solution_file_path = solution_exercise.pathToFile
+                
+                if os.path.isfile(solution_file_path):
+                    with open(solution_file_path, 'r') as f:
+                        solutionValue.append(f.read())
+       
+        newdict['solutionValue'] = solutionValue
         print(newdict)
         newdict.update(serializer.data)
+
         return Response(newdict)
     
     # tworzenie rozwiazania i testowanie:
@@ -556,6 +584,10 @@ class SolutionViewSet(viewsets.ModelViewSet):
         print(data['solutionType'])     
 
         task = Task.objects.get(pk=data['taskPk'])
+
+        # tworzenie glownego obiektu Solution
+        Solution.objects.update_or_create(task=task, user=request.user)
+
         exercise = None
 
         if task.taskType.name == 'Exercise':
