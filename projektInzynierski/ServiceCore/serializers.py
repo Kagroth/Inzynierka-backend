@@ -1,4 +1,5 @@
 
+import os
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from ServiceCore.models import *
@@ -149,11 +150,48 @@ class TaskWithSolutionData(serializers.ModelSerializer):
         solution = task.solutions.all()
         return SolutionSerializer(solution, many=True).data
 
+class SolutionExerciseSerializer(serializers.ModelSerializer):    
+    solution_value = serializers.SerializerMethodField('get_solution_value_from_file')
+
+    class Meta:
+        model = SolutionExercise
+        fields = ('pk', 'rate', 'github_link', 'solution_value')
+    
+    def get_solution_value_from_file(self, solution_exercise):
+        sol_val = None
+        solution_file_path = None
+
+        try:
+            solution_file_path = solution_exercise.pathToFile
+        except Exception as e:
+            print(e)
+            return ""
+        
+        if os.path.isfile(solution_file_path):
+            with open(solution_file_path, 'r') as f:
+                sol_val = f.read()
+            
+            return sol_val
+
+class SolutionTestSerializer(serializers.ModelSerializer):
+    solution_exercises = serializers.SerializerMethodField('get_exercises_solutions')
+
+    class Meta:
+        model = SolutionTest
+        fields = ('pk', 'rate', 'solution_exercises')
+
+    def get_exercises_solutions(self, solution_test):
+        solutions_exerc = solution_test.exercises_solutions.all()
+        return SolutionExerciseSerializer(solutions_exerc, many=True).data
+
 class SolutionSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     task = TaskSerializer()
+    solution_test = SolutionTestSerializer()
+    # SolutionExerciseSerializer musi miec parametr many=True poniewaz dla False 
+    # ten serializer nie zwraca poprawnie wartosci w get_solution_value_from_file
+    solution_exercise = SolutionExerciseSerializer(many=True)
 
     class Meta:
         model = Solution
-        fields = ('pk', 'user', 'task', 'rate')
-
+        fields = ('pk', 'user', 'task', 'rate', 'solution_test', 'solution_exercise')
