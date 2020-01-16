@@ -168,6 +168,14 @@ class JavaExecutor(SolutionExecutor):
                 solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object,
                                                                         pathToFile=os.path.join(self.fs.location, 'src', 'main', 'java', 'Solution.java'))
                 
+                if solution_exercise.exercise is None:
+                    if self.task.taskType.name == 'Exercise':
+                        solution_exercise.exercise = self.task.exercise
+                    else:
+                        solution_exercise.exercise = self.task.test.exercises.get(pk=self.solutionData['exercisePk'])
+                
+                solution_exercise.save()
+                
                 if self.task.taskType.name == 'Test':
                     test_solution, created = SolutionTest.objects.update_or_create(solution=main_solution_object)
                     solution_exercise.test = test_solution

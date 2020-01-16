@@ -3,6 +3,7 @@ import os
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from ServiceCore.models import *
+from ServiceCore.utils import getUserSolutionPath
 
 #UnitTest model serializer
 class UnitTestSerializer(serializers.ModelSerializer):
@@ -150,12 +151,14 @@ class TaskWithSolutionData(serializers.ModelSerializer):
         solution = task.solutions.all()
         return SolutionSerializer(solution, many=True).data
 
-class SolutionExerciseSerializer(serializers.ModelSerializer):    
+class SolutionExerciseSerializer(serializers.ModelSerializer):
+    exercise = ExerciseSerializer()    
     solution_value = serializers.SerializerMethodField('get_solution_value_from_file')
+    test_results = serializers.SerializerMethodField()
 
     class Meta:
         model = SolutionExercise
-        fields = ('pk', 'rate', 'github_link', 'solution_value')
+        fields = ('pk', 'rate', 'github_link', 'solution_value', 'exercise', 'test_results')
     
     def get_solution_value_from_file(self, solution_exercise):
         sol_val = None
@@ -172,6 +175,36 @@ class SolutionExerciseSerializer(serializers.ModelSerializer):
                 sol_val = f.read()
             
             return sol_val
+        
+    def get_test_results(self, solution_exercise):
+        solution = solution_exercise.solution
+        test_results = None
+        results_file_path = ""
+
+        if solution.task.taskType.name == 'Exercise':
+            solution_path = getUserSolutionPath(solution.task, solution.task.assignedTo.first(), solution.user)
+        else:
+            solution_path = getUserSolutionPath(solution.task,
+                                                solution.task.assignedTo.first(), 
+                                                solution.user, 
+                                                solution_exercise.exercise)
+
+        if solution_exercise.exercise.language.name == 'Python':
+            results_file_path = os.path.join(solution_path, 'result.txt')
+        else:
+            results_file_path = os.path.join(solution_path, 'target', 'surefire-reports', 'Unit0Test.txt')
+
+        if os.path.isfile(results_file_path):
+            try:
+                with open(results_file_path, 'r') as f:
+                    test_results = f.read()
+            except Exception as e:
+                print(str(e))
+
+        return test_results
+
+
+    
 
 class SolutionTestSerializer(serializers.ModelSerializer):
     solution_exercises = serializers.SerializerMethodField('get_exercises_solutions')

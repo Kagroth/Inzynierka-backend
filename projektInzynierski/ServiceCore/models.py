@@ -138,6 +138,7 @@ class SolutionTest(models.Model):
 class SolutionExercise(models.Model):
     solution = models.ForeignKey(Solution, related_name="solution_exercise", on_delete=models.CASCADE)
     test = models.ForeignKey(SolutionTest, related_name="exercises_solutions", blank=True, null=True, on_delete=models.CASCADE)
+    exercise = models.ForeignKey(Exercise,  blank=True, null=True, on_delete=models.CASCADE)
     pathToFile = models.FilePathField(max_length=1024)
     rate = models.IntegerField(blank=True, null=True)
     github_link = models.CharField(max_length=4096, blank=True, null=True)

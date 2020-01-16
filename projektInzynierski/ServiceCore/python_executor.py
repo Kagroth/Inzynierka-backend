@@ -1,7 +1,7 @@
 
 import logging
 
-from ServiceCore.models import Solution, SolutionExercise, SolutionTest
+from ServiceCore.models import Solution, SolutionExercise, SolutionTest, Exercise
 from ServiceCore.solution_executor import *
 
 class PythonExecutor(SolutionExecutor):
@@ -173,6 +173,12 @@ class PythonExecutor(SolutionExecutor):
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
                 solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object,
                                                         pathToFile=os.path.join(self.fs.location, 'Solution.py'))
+                
+                if solution_exercise.exercise is None:
+                    if self.task.taskType.name == 'Exercise':
+                        solution_exercise.exercise = self.task.exercise
+                    else:
+                        solution_exercise.exercise = self.task.test.exercises.get(pk=self.solutionData['exercisePk'])
                 
                 solution_exercise.save()
 
