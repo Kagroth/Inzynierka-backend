@@ -567,8 +567,9 @@ class SolutionViewSet(viewsets.ModelViewSet):
                 if os.path.isfile(solution_file_path):
                     with open(solution_file_path, 'r') as f:
                         solutionValue.append(f.read())
-       
+
         newdict['solutionValue'] = solutionValue
+
         print(newdict)
         newdict.update(serializer.data)
 
@@ -611,4 +612,4 @@ class SolutionViewSet(viewsets.ModelViewSet):
         print(result)
         print(message)
 
-        return Response({"message": message, "test_results": solExecutor.get_result()})
+        return Response({"result": result, "message": message, "test_results": solExecutor.get_result()})
