@@ -199,12 +199,26 @@ class JavaExecutor(SolutionExecutor):
                     self.testsResult.append(line) 
 
         except Exception as e:
-            self.logger.info("Nie udalo sie odczytac wynikow testowania - " + str(e))
-            # powrot do glownego folderu
-            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            return (False, "Nie udalo sie odczytac wynikow")
+            self.logger.info("Nie udalo sie odczytac wynikow testowania z surefire_reports - " + str(e))
+            result_message = ""
+
+            try:
+                with open(os.path.join(self.fs.location, 'result.txt')) as result_file:
+                    for line in result_file.readlines():
+                        if len(line) == 1:
+                            continue
+                        self.testsResult.append(line)
+                result_message = "Testy niezaliczone"
+            except Exception as ex:
+                self.logger.info("Nie udalo sie odczytac wynikow testowania z result.txt - " + str(ex))
+                result_message = "Nie udalo sie odczytac wynikow testowania"
+            finally:
+                # powrot do glownego folderu
+                os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))           
+            
+            return (False, result_message)
         
         # powrot do glownego folderu
         os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-        return (True, "Testowanie zakonczone")      
+        return (True, "Testowanie zakonczone pomyslnie")      
