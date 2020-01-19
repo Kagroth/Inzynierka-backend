@@ -194,18 +194,29 @@ class PythonExecutor(SolutionExecutor):
                 solution_exercise.save()
         except Exception as e:
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
-            return (False, "Nie udalo sie przetestowac kodu")
+            return (False, False, "Nie udalo sie przetestowac kodu")
+
+        unit_tests_passed = False
 
         try:
             with open(os.path.join(self.fs.location, "result.txt"), "r") as result_file:            
-                for line in result_file.readlines():
+                file_lines = result_file.readlines()
+                
+                file_lines_without_newline_chars = [line for line in file_lines if line != '\n']
+
+                if "OK" in file_lines_without_newline_chars[-1]:
+                    unit_tests_passed = True
+                else:
+                    unit_tests_passed = False
+
+                for line in file_lines:
                     if len(line) == 1:
                         continue
                     self.testsResult.append(line) 
                 
         except Exception as e:
             self.logger.info("Nie udalo sie odczytac wynikow testowania")
-            return (False, "Nie udalo sie zapisac wynikow")
+            return (True, False, "Nie udalo sie zapisac wynikow")
 
         self.logger.info("Testowanie rozwiazania pk=" + str(solution_exercise.pk) + " zakonczone pomyslnie")
-        return (True, "Testowanie zakonczone")  
+        return (True, unit_tests_passed, "Testowanie zakonczone")  

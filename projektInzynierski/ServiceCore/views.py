@@ -580,6 +580,9 @@ class SolutionViewSet(viewsets.ModelViewSet):
     #   - przeslanie pliku
     #   - edytor
     def create(self, request):
+        # logger
+        logger = logging.getLogger(self.__class__.__name__)
+
         data = request.data
         print(data)
         print(data['solutionType'])     
@@ -607,9 +610,10 @@ class SolutionViewSet(viewsets.ModelViewSet):
         
         solExecutor = Executor(concreteExecutor)
         
-        (result, message) = solExecutor.execute()
+        (execution_success, unit_tests_passed, message) = solExecutor.execute()
 
-        print(result)
-        print(message)
+        logger.info("Wynik dzialania Executora: Wykonanie testów: " + str(execution_success) + \
+                    "; Zaliczenie testow jednostkowych: " + str(unit_tests_passed) + \
+                    "; Komunikat executora: " + message)
 
-        return Response({"result": result, "message": message, "test_results": solExecutor.get_result()})
+        return Response({"result": unit_tests_passed, "message": message, "test_results": solExecutor.get_result()})

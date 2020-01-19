@@ -190,10 +190,25 @@ class JavaExecutor(SolutionExecutor):
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
             return (False, "Nie udalo sie przetestowac kodu")
 
+        
+        unit_tests_passed = False
+
         try:            
             with open(os.path.join(self.fs.location, 'target', 'surefire-reports', 'Unit0Test.txt'), "r") as result_file:
-                 
-                for line in result_file.readlines():
+                file_lines = result_file.readlines()
+
+                file_lines_without_newline_chars = [line for line in file_lines if line != '\n']
+
+                # pobranie liczby testow FAILURES
+                fail_number = file_lines_without_newline_chars[-1].split(',')[1].split(':')[-1]
+                fail_number = int(fail_number)
+
+                if fail_number > 0:
+                    unit_tests_passed = False
+                else:
+                    unit_tests_passed = True
+
+                for line in file_lines_without_newline_chars:
                     if len(line) == 1:
                         continue
                     self.testsResult.append(line) 
@@ -216,9 +231,9 @@ class JavaExecutor(SolutionExecutor):
                 # powrot do glownego folderu
                 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))           
             
-            return (False, result_message)
+            return (False, False, result_message)
         
         # powrot do glownego folderu
         os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-        return (True, "Testowanie zakonczone pomyslnie")      
+        return (True, unit_tests_passed, "Testowanie zakonczone pomyslnie")      
