@@ -15,6 +15,7 @@ from ServiceCore.unit_tests_utils import create_unit_tests
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from django.db.models import FilePathField
+from django.db import transaction
 from django.http.response import HttpResponse
 from django.shortcuts import render
 
@@ -617,3 +618,41 @@ class SolutionViewSet(viewsets.ModelViewSet):
                     "; Komunikat executora: " + message)
 
         return Response({"result": unit_tests_passed, "message": message, "test_results": solExecutor.get_result()})
+    
+    def update(self, request, pk=None):
+        # logger
+        logger = logging.getLogger(self.__class__.__name__)
+
+        data = request.data
+
+        if not data['mode'] == 'RATE':
+            return Response({"message": "Niepoprawny typ operacji"}, status=400)
+        
+        final_rate = 0
+        
+        try:
+            with transaction.atomic():
+                solution_to_rate = Solution.objects.get(pk=data['pk'])
+                for exercise_rate in data['solRates']:
+                    solution_exercise = SolutionExercise.objects.get(pk=exercise_rate['pk'])
+                    solution_exercise.rate = float(exercise_rate['rate'])
+                    final_rate += float(exercise_rate['rate'])
+                    solution_exercise.save()
+
+                    logger.info("Ustawiono pole rate=" + str(exercise_rate['rate']) + " obiektu SolutionExericse pk=" + str(exercise_rate['pk']))
+            
+                if solution_to_rate.task.taskType.name == 'Test':
+                    final_rate = final_rate / len(data['solRates'])
+                    final_rate = round(final_rate * 2) / 2
+                    solution_to_rate.rate = final_rate
+                    solution_to_rate.solution_test.rate = final_rate
+                else:
+                    solution_to_rate.rate = final_rate
+                
+                solution_to_rate.save()
+        except Exception as e:
+            logger.info("Wystapil blad podczas zapisywania ocen - " + str(e))
+            print(e)
+            return Response({"message": "Wystapil blad podczas zapisywania ocen"}, status=500)
+        
+        return Response({"message": "Zadanie zostalo ocenione"}, status=200) 
