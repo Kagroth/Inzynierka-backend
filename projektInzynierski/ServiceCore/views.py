@@ -532,13 +532,22 @@ class SolutionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = None
-        return Solution.objects.all()
         profile = Profile.objects.get(user=self.request.user)
 
         if profile.userType.name == "Student":        
             queryset = Solution.objects.filter(user=self.request.user)
         else:
-            queryset = Solution.objects.all()
+            teacher_tasks = self.request.user.my_tasks.all()
+            print(teacher_tasks)
+            if teacher_tasks.count() > 0:
+                queryset = teacher_tasks[0].solutions.all()
+
+                for task in teacher_tasks:
+                    queryset = queryset.union(task.solutions.all())
+
+                queryset = queryset.distinct()
+            else:
+                queryset = queryset.none()
 
         return queryset
     
