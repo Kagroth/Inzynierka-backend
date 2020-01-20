@@ -528,9 +528,21 @@ class TaskViewSet(viewsets.ModelViewSet):
         if data['mode'] == 'CLOSE':
             # zamykanie zadania - niemozliwe bedzie wysylanie odpowiedzi
             try:
-                taskToClose = Task.objects.get(pk=data['pk'])
-                taskToClose.isActive = False
-                taskToClose.save()
+                task_to_close = Task.objects.get(pk=data['pk'])
+                task_to_close.isActive = False
+                task_to_close.save()
+
+                assigned_to = task_to_close.assignedTo.first()
+                group_members = assigned_to.users.all()
+                solutions = task_to_close.solutions.all()
+
+                for group_member in group_members:
+                    intersection_qs = group_member.solutions.intersection(solutions)
+                    print(intersection_qs)
+
+                    if len(intersection_qs) == 0:
+                        new_solution = Solution.objects.create(task=task_to_close, user=group_member, rate=2)
+                        new_solution.save()
 
                 logger.info("Zamknieto zadanie o pk=" + str(data['pk']))
 
