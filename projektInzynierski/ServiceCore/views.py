@@ -531,8 +531,11 @@ class SolutionViewSet(viewsets.ModelViewSet):
     serializer_class = SolutionSerializer
 
     def get_queryset(self):
+        logger = logging.getLogger(__name__)
         queryset = None
         profile = Profile.objects.get(user=self.request.user)
+
+        logger.info("Uzytkownik " + str(self.request.user.username) + " - " + profile.userType.name + " pobiera rozwiazania")
 
         if profile.userType.name == "Student":        
             queryset = Solution.objects.filter(user=self.request.user)
