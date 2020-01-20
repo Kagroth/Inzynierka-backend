@@ -35,7 +35,7 @@ def create_java_unit_tests(exercise, unit_tests_data):
             unit_test_file.write(
 "import static org.junit.jupiter.api.Assertions.*;\n\
 import org.junit.jupiter.api.Test;\n\
-import com.myapp.*;\
+import com.myapp.*;\n\
 public class Unit" + str(index) + "Test { \n\
     @Test \n\
     public void test1() { \n")
