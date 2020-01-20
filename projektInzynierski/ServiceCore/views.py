@@ -228,14 +228,16 @@ class ExerciseViewSet(viewsets.ModelViewSet):
     serializer_class = ExerciseSerializer
 
     def get_queryset(self):
+        logger = logging.getLogger(__name__)
         queryset = None
-        print(self.request.user)
         profile = Profile.objects.get(user=self.request.user)
+
+        logger.info("Uzytkownik " + str(self.request.user.username) + " - " + profile.userType.name + " pobiera cwiczenia")
 
         if profile.userType.name == "Student":
             # student nie powinien miec mozliwosci ogladania cwiczen, teoretycznie
             # wglad do nich powinien byc jedynie poprzez Task
-            queryset = Exercise.objects.all()
+            queryset = Exercise.objects.none()
         else:
             queryset = self.request.user.exercises.all()
         
@@ -338,14 +340,16 @@ class TestViewSet(viewsets.ModelViewSet):
     serializer_class = TestSerializer
 
     def get_queryset(self):
+        logger = logging.getLogger(__name__)
         queryset = None
-        print(self.request.user)
         profile = Profile.objects.get(user=self.request.user)
+
+        logger.info("Uzytkownik " + str(self.request.user.username) + " - " + profile.userType.name + " pobiera kolokwia")
 
         if profile.userType.name == "Student":
             # student nie powinien miec mozliwosci ogladania kolokwium, teoretycznie
             # wglad do nich powinien byc jedynie poprzez Task
-            queryset = Test.objects.all()
+            queryset = Test.objects.none()
         else:
             queryset = self.request.user.tests.all()
         
