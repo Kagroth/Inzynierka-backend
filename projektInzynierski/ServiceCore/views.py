@@ -62,6 +62,19 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def retrieve(self, request, pk=None):
+        if pk is None:
+            return Response({"message": "Nie podano nazwy uzytkownika"}, status=400)
+        
+        user = User.objects.get(pk=pk)        
+        user_serializer = UserSerializer(user)
+        solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
+        response_data = {}        
+        response_data['solutions'] = solutions_serializer.data
+        response_data['user'] = user_serializer.data
+        return Response(response_data, status=200)
+
+
     # przeladowanie handlera metody POST -> tworzenie usera
     def create(self, request):
         # komunikaty messages zwracane przez widok
