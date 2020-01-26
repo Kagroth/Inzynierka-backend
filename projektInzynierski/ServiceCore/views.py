@@ -585,6 +585,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
     
     # zwroc rozwiazanie o podanym pk
     def retrieve(self, request, pk=None):
+        logger = logging.getLogger(__name__)
         queryset = Solution.objects.all()
         solution = queryset.get(pk=pk)
         # pobranie pierwszej grupy - niepotrzebne 
@@ -595,7 +596,13 @@ class SolutionViewSet(viewsets.ModelViewSet):
         solutionValue = None
 
         if solution.task.taskType.name == 'Exercise':
-            solution_file_path = solution.solution_exercise.get().pathToFile
+            solution_file_path = ""
+
+            try:
+                solution_file_path = solution.solution_exercise.get().pathToFile
+            except Exception as e:
+                logger.info("Uzytkownik nie przyslal rozwiazania - " + str(e))
+                return Response(serializer.data, status=400)
 
             if os.path.isfile(solution_file_path):
                 with open(solution_file_path, 'r') as f:
