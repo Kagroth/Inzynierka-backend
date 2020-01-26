@@ -33,7 +33,7 @@ def create_java_unit_tests(exercise, unit_tests_data):
 
     lines_to_write = ['import static org.junit.jupiter.api.Assertions.*;\n',
                     'import org.junit.jupiter.api.Test;\n',
-                    'import com.myapp.*;\n',
+                    'import static com.myapp.Solution.*;\n',
                     'public class UnitTest {\n']
 
     with open(pathToFile, "w+") as unit_test_file:
