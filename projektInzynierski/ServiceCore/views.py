@@ -500,7 +500,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             else:    
                 newTask = Task.objects.create(taskType=taskType, exercise=exercise, title=data['title'], author=request.user)
 
-            solutionType = SolutionType.objects.get(name=data['solutionType']['name'])
+            solutionType = SolutionType.objects.get(name=data['solutionType'])
             newTask.solutionType = solutionType
 
             newTask.save()
