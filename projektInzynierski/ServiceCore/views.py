@@ -25,6 +25,26 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer        
 
+# zwraca liste studentow ktorzy sa czlonkami grup nauczyciela wysylajacego request 
+class TeachersStudentsView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request):
+        logger = logging.getLogger(__name__)   
+        
+        queryset = User.objects.none()
+
+        groups = self.request.user.group.all()
+
+        for group in groups:
+            queryset = queryset.union(group.users.all())
+        
+        queryset = queryset.distinct()
+
+        serializer_data = UserSerializer(queryset, many=True)
+
+        return Response(serializer_data.data)
+
 class SolutionTypeView(APIView):
     def get(self, request):
         solutionsTypes = SolutionType.objects.all()
@@ -69,9 +89,12 @@ class UserViewSet(viewsets.ModelViewSet):
         user = User.objects.get(pk=pk)        
         user_serializer = UserSerializer(user)
         solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
+        tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
         response_data = {}        
         response_data['solutions'] = solutions_serializer.data
         response_data['user'] = user_serializer.data
+        response_data['tasks'] = tasks_with_solutions_serializer.data
+
         return Response(response_data, status=200)
 
 
@@ -524,9 +547,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         # logger
         logger = logging.getLogger(self.__class__.__name__)
         data = request.data
-
-        if data['mode'] == 'CLOSE':
-            # zamykanie zadania - niemozliwe bedzie wysylanie odpowiedzi
+        print(data['mode'])
+        if data['mode'] == 'LOCK':
+            # zablokowanie zadania - niemozliwe bedzie wysylanie odpowiedzi
+            # zadanie oczekuje na zatwierdzenie ocen
             try:
                 task_to_close = Task.objects.get(pk=data['pk'])
                 task_to_close.isActive = False
@@ -543,6 +567,22 @@ class TaskViewSet(viewsets.ModelViewSet):
                     if len(intersection_qs) == 0:
                         new_solution = Solution.objects.create(task=task_to_close, user=group_member, rate=2)
                         new_solution.save()
+
+                logger.info("Zablokowano zadanie o pk=" + str(data['pk']))
+
+                return Response({"message": "Zablokowano zadanie"}, status=200)
+            except Exception as e:
+                logger.info("Nie udalo sie zablokowac zadania o pk=" + str(data['pk']) + ". Blad=" + str(e))
+
+                return Response({"message": "Nie udalo sie zablokowac zadania"}, status=500)
+
+        elif data['mode'] == 'CLOSE':
+            # zatwierdzenie ocen konkretnego zadania
+            try:
+                task_to_close = Task.objects.get(pk=data['pk'])
+                task_to_close.isRated = True
+                task_to_close.isActive = False
+                task_to_close.save()
 
                 logger.info("Zamknieto zadanie o pk=" + str(data['pk']))
 
