@@ -194,7 +194,7 @@ class JavaExecutor(SolutionExecutor):
         unit_tests_passed = False
 
         try:            
-            with open(os.path.join(self.fs.location, 'target', 'surefire-reports', 'Unit0Test.txt'), "r") as result_file:
+            with open(os.path.join(self.fs.location, 'target', 'surefire-reports', 'UnitTest.txt'), "r") as result_file:
                 file_lines = result_file.readlines()
 
                 file_lines_without_newline_chars = [line for line in file_lines if line != '\n']

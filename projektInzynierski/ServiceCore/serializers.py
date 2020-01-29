@@ -101,7 +101,7 @@ class TaskSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'test', 'isActive', 'solutionType')
+        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'test', 'isActive', 'isRated', 'solutionType')
 
 
 class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
@@ -132,7 +132,7 @@ class TaskWithAssignedGroupsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive', 'solutionType')
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive', 'isRated', 'solutionType')
 
 class TaskWithSolutionData(serializers.ModelSerializer):    
     author = UserSerializer()
@@ -145,7 +145,7 @@ class TaskWithSolutionData(serializers.ModelSerializer):
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test' ,'isActive', 'solution', 'solutionType')
+        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test' ,'isActive', 'isRated','solution', 'solutionType')
     
     def getSolution(self, task):
         solution = task.solutions.all()
@@ -192,7 +192,7 @@ class SolutionExerciseSerializer(serializers.ModelSerializer):
         if solution_exercise.exercise.language.name == 'Python':
             results_file_path = os.path.join(solution_path, 'result.txt')
         else:
-            results_file_path = os.path.join(solution_path, 'target', 'surefire-reports', 'Unit0Test.txt')
+            results_file_path = os.path.join(solution_path, 'target', 'surefire-reports', 'UnitTest.txt')
 
         if os.path.isfile(results_file_path):
             try:
