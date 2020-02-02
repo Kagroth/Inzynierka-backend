@@ -25,6 +25,26 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer        
 
+# zwraca liste studentow ktorzy sa czlonkami grup nauczyciela wysylajacego request 
+class TeachersStudentsView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request):
+        logger = logging.getLogger(__name__)   
+        
+        queryset = User.objects.none()
+
+        groups = self.request.user.group.all()
+
+        for group in groups:
+            queryset = queryset.union(group.users.all())
+        
+        queryset = queryset.distinct()
+
+        serializer_data = UserSerializer(queryset, many=True)
+
+        return Response(serializer_data.data)
+
 class SolutionTypeView(APIView):
     def get(self, request):
         solutionsTypes = SolutionType.objects.all()
@@ -69,9 +89,12 @@ class UserViewSet(viewsets.ModelViewSet):
         user = User.objects.get(pk=pk)        
         user_serializer = UserSerializer(user)
         solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
+        tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
         response_data = {}        
         response_data['solutions'] = solutions_serializer.data
         response_data['user'] = user_serializer.data
+        response_data['tasks'] = tasks_with_solutions_serializer.data
+
         return Response(response_data, status=200)
 
 
@@ -242,13 +265,13 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         logger = logging.getLogger(__name__)
-        queryset = None
+        queryset = Exercise.objects.none()
         profile = Profile.objects.get(user=self.request.user)
 
         logger.info("Uzytkownik " + str(self.request.user.username) + " - " + profile.userType.name + " pobiera cwiczenia")
 
         if profile.userType.name == "Student":
-            # student nie powinien miec mozliwosci ogladania cwiczen, teoretycznie
+            # student nie powinien miec mozliwosci ogladania cwiczen
             # wglad do nich powinien byc jedynie poprzez Task
             queryset = Exercise.objects.none()
         else:
@@ -393,19 +416,19 @@ class TestViewSet(viewsets.ModelViewSet):
                 exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])
                 testToCreate.exercises.add(exercise)
             
-            #createTestDirectory(testToCreate)
             if createTestRootDirectory(testToCreate):
                 testToCreate.save()
             else:
                 testToCreate.delete()
-                return Response({"message": "Nie udalo sie utworzyc testu - blad tworzenia katalogow"}, status=500)
+                logger.info("Nastąpił błąd podczas tworzenia kolokwium - nie udalo sie utworzyc katalogów")
+                return Response({"message": "Nie udalo sie utworzyc kolokwium - blad tworzenia katalogow"}, status=500)
 
         except Exception as e:
-            print(e)
-            print("Nastąpił błąd podczas tworzenia testu")
-            return Response({"message": "Nastąpił błąd podczas tworzenia testu"}, status=500)
+            logger.info("Nastąpił błąd podczas tworzenia kolokwium" + str(e))
+            return Response({"message": "Nastąpił błąd podczas tworzenia kolokwium"}, status=500)
         
-        return Response({"message": "Utworzono Test"}, status=200)
+        logger.info("Utworzono Test o pk=" + str(testToCreate.pk))
+        return Response({"message": "Utworzono kolokwium"}, status=200)
     
     # usun kolokwium o podanym pk
     # tu dopisac usuwanie folderu
@@ -456,10 +479,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                     queryset = queryset.union(group.tasks.all())
                 
                 queryset = queryset.distinct()
-
-            else:
-                queryset = queryset.none()
-
         else:
             queryset = self.request.user.my_tasks.all()
         
@@ -500,7 +519,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             else:    
                 newTask = Task.objects.create(taskType=taskType, exercise=exercise, title=data['title'], author=request.user)
 
-            solutionType = SolutionType.objects.get(name=data['solutionType']['name'])
+            solutionType = SolutionType.objects.get(name=data['solutionType'])
             newTask.solutionType = solutionType
 
             newTask.save()
@@ -524,9 +543,10 @@ class TaskViewSet(viewsets.ModelViewSet):
         # logger
         logger = logging.getLogger(self.__class__.__name__)
         data = request.data
-
-        if data['mode'] == 'CLOSE':
-            # zamykanie zadania - niemozliwe bedzie wysylanie odpowiedzi
+        print(data['mode'])
+        if data['mode'] == 'LOCK':
+            # zablokowanie zadania - niemozliwe bedzie wysylanie odpowiedzi
+            # zadanie oczekuje na zatwierdzenie ocen
             try:
                 task_to_close = Task.objects.get(pk=data['pk'])
                 task_to_close.isActive = False
@@ -543,6 +563,22 @@ class TaskViewSet(viewsets.ModelViewSet):
                     if len(intersection_qs) == 0:
                         new_solution = Solution.objects.create(task=task_to_close, user=group_member, rate=2)
                         new_solution.save()
+
+                logger.info("Zablokowano zadanie o pk=" + str(data['pk']))
+
+                return Response({"message": "Zablokowano zadanie"}, status=200)
+            except Exception as e:
+                logger.info("Nie udalo sie zablokowac zadania o pk=" + str(data['pk']) + ". Blad=" + str(e))
+
+                return Response({"message": "Nie udalo sie zablokowac zadania"}, status=500)
+
+        elif data['mode'] == 'CLOSE':
+            # zatwierdzenie ocen konkretnego zadania
+            try:
+                task_to_close = Task.objects.get(pk=data['pk'])
+                task_to_close.isRated = True
+                task_to_close.isActive = False
+                task_to_close.save()
 
                 logger.info("Zamknieto zadanie o pk=" + str(data['pk']))
 
@@ -578,13 +614,12 @@ class SolutionViewSet(viewsets.ModelViewSet):
                     queryset = queryset.union(task.solutions.all())
 
                 queryset = queryset.distinct()
-            else:
-                queryset = queryset.none()
 
         return queryset
     
     # zwroc rozwiazanie o podanym pk
     def retrieve(self, request, pk=None):
+        logger = logging.getLogger(__name__)
         queryset = Solution.objects.all()
         solution = queryset.get(pk=pk)
         # pobranie pierwszej grupy - niepotrzebne 
@@ -595,7 +630,13 @@ class SolutionViewSet(viewsets.ModelViewSet):
         solutionValue = None
 
         if solution.task.taskType.name == 'Exercise':
-            solution_file_path = solution.solution_exercise.get().pathToFile
+            solution_file_path = ""
+
+            try:
+                solution_file_path = solution.solution_exercise.get().pathToFile
+            except Exception as e:
+                logger.info("Uzytkownik nie przyslal rozwiazania - " + str(e))
+                return Response(serializer.data, status=400)
 
             if os.path.isfile(solution_file_path):
                 with open(solution_file_path, 'r') as f:
