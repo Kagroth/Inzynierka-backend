@@ -265,13 +265,13 @@ class ExerciseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         logger = logging.getLogger(__name__)
-        queryset = None
+        queryset = Exercise.objects.none()
         profile = Profile.objects.get(user=self.request.user)
 
         logger.info("Uzytkownik " + str(self.request.user.username) + " - " + profile.userType.name + " pobiera cwiczenia")
 
         if profile.userType.name == "Student":
-            # student nie powinien miec mozliwosci ogladania cwiczen, teoretycznie
+            # student nie powinien miec mozliwosci ogladania cwiczen
             # wglad do nich powinien byc jedynie poprzez Task
             queryset = Exercise.objects.none()
         else:
