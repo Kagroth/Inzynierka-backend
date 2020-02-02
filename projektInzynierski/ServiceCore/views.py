@@ -416,19 +416,19 @@ class TestViewSet(viewsets.ModelViewSet):
                 exercise = Exercise.objects.get(pk=exerciseToAdd['pk'])
                 testToCreate.exercises.add(exercise)
             
-            #createTestDirectory(testToCreate)
             if createTestRootDirectory(testToCreate):
                 testToCreate.save()
             else:
                 testToCreate.delete()
-                return Response({"message": "Nie udalo sie utworzyc testu - blad tworzenia katalogow"}, status=500)
+                logger.info("Nastąpił błąd podczas tworzenia kolokwium - nie udalo sie utworzyc katalogów")
+                return Response({"message": "Nie udalo sie utworzyc kolokwium - blad tworzenia katalogow"}, status=500)
 
         except Exception as e:
-            print(e)
-            print("Nastąpił błąd podczas tworzenia testu")
-            return Response({"message": "Nastąpił błąd podczas tworzenia testu"}, status=500)
+            logger.info("Nastąpił błąd podczas tworzenia kolokwium" + str(e))
+            return Response({"message": "Nastąpił błąd podczas tworzenia kolokwium"}, status=500)
         
-        return Response({"message": "Utworzono Test"}, status=200)
+        logger.info("Utworzono Test o pk=" + str(testToCreate.pk))
+        return Response({"message": "Utworzono kolokwium"}, status=200)
     
     # usun kolokwium o podanym pk
     # tu dopisac usuwanie folderu
@@ -479,10 +479,6 @@ class TaskViewSet(viewsets.ModelViewSet):
                     queryset = queryset.union(group.tasks.all())
                 
                 queryset = queryset.distinct()
-
-            else:
-                queryset = queryset.none()
-
         else:
             queryset = self.request.user.my_tasks.all()
         
@@ -618,8 +614,6 @@ class SolutionViewSet(viewsets.ModelViewSet):
                     queryset = queryset.union(task.solutions.all())
 
                 queryset = queryset.distinct()
-            else:
-                queryset = queryset.none()
 
         return queryset
     
