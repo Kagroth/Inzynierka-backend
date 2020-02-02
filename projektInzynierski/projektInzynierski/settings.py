@@ -29,7 +29,7 @@ with open('secret_key.txt') as f:
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    '13.48.71.195',
+    'ec2-13-53-79-179.eu-north-1.compute.amazonaws.com',
     'localhost'
 ]
 
