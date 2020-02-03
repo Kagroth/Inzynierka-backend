@@ -29,7 +29,7 @@ with open('secret_key.txt') as f:
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    'ec2-13-53-79-179.eu-north-1.compute.amazonaws.com',
+    '13.53.79.179',
     'localhost'
 ]
 
@@ -130,7 +130,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CORS_ORIGIN_ALLOW_ANY = True
+CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ORIGIN_WHITELIST = (
     'localhost:8080',
@@ -168,13 +168,13 @@ LOGGING = {
         'ServiceCore_File': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'D:\\Materialy\\Seminarium\\Inzynierka\\backend\\projektInzynierski\\logs\\debug.log',
+            'filename': os.path.join(BASE_DIR, 'logs', 'debug.log'),
             'formatter': 'standard'
         },
         'file': {            
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': 'D:\\Materialy\\Seminarium\\Inzynierka\\backend\\projektInzynierski\\logs\\django.log',
+            'filename': os.path.join(BASE_DIR, 'logs', 'django.log'),
         },
         'console': {
             'class': 'logging.StreamHandler',
