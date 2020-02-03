@@ -1,6 +1,9 @@
 
 import logging
 
+from subprocess import PIPE
+from shutil import copy
+
 from ServiceCore.models import Solution, SolutionExercise, SolutionTest, Exercise
 from ServiceCore.solution_executor import *
 
@@ -148,9 +151,10 @@ class PythonExecutor(SolutionExecutor):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
                         # skopiowanie unit testow
-                        copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
-                        print(copyCommand)
-                        os.popen(copyCommand)
+                        copy(os.path.join(subdir, file), os.path.join(self.fs.location, file))
+                        # copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
+                        # print(copyCommand)
+                        # os.popen(copyCommand)
     
     def run(self):
         if not self.isReady():
@@ -162,7 +166,7 @@ class PythonExecutor(SolutionExecutor):
             with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
                 self.logger.info(os.getcwd())
                 self.logger.info(self.testCommand)
-                process = subprocess.run(self.testCommand, capture_output=True, shell=True)
+                process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=False)
                             
                 result_file.write(process.stdout.decode("utf-8"))                           
                 result_file.write(process.stderr.decode("utf-8"))
