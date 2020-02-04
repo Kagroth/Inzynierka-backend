@@ -98,7 +98,7 @@ class PythonExecutor(SolutionExecutor):
             ]
 
             for git_command in git_commands:
-                process = subprocess.run(git_command, capture_output=True, shell=True)
+                process = subprocess.run(git_command, stdout=PIPE, stderr=PIPE, shell=False)
                 self.logger.info("Wynik wykonania instrukcji " + \
                                 " ".join(git_command) + \
                                 " - " + str(process.stdout.decode("utf-8")) + \
