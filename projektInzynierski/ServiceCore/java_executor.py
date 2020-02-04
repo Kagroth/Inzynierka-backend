@@ -1,6 +1,9 @@
 
 import logging
 
+from subprocess import PIPE
+from shutil import copy
+
 from ServiceCore.models import Solution, SolutionExercise, SolutionTest
 from ServiceCore.solution_executor import *
 
@@ -96,7 +99,7 @@ class JavaExecutor(SolutionExecutor):
             ]
 
             for git_command in git_commands:
-                process = subprocess.run(git_command, capture_output=True, shell=True)
+                process = subprocess.run(git_command, stdout=PIPE, stderr=PIPE, shell=False)
                 self.logger.info("Wynik wykonania instrukcji " + \
                                 " ".join(git_command) + \
                                 " - " + str(process.stdout.decode("utf-8")) + \
@@ -144,10 +147,12 @@ class JavaExecutor(SolutionExecutor):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
                         # skopiowanie unit testow
-                        copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, 'src', 'test', 'java'))
+                        copy(os.path.join(subdir, file), os.path.join(self.fs.location, 'src', 'test', 'java'))
+
+                        # copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, 'src', 'test', 'java'))
                         
-                        print(copyCommand)
-                        os.popen(copyCommand)
+                        # print(copyCommand)
+                        # os.popen(copyCommand)
 
     def run(self):
         solution_exercise = None
@@ -156,7 +161,7 @@ class JavaExecutor(SolutionExecutor):
             with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
                 os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
                 
-                process = subprocess.run(self.testCommand, capture_output=True, shell=True)
+                process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=False)
             
                 result_file.write(process.stdout.decode("utf-8"))                           
                 result_file.write(process.stderr.decode("utf-8"))

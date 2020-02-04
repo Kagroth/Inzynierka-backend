@@ -576,6 +576,11 @@ class TaskViewSet(viewsets.ModelViewSet):
             # zatwierdzenie ocen konkretnego zadania
             try:
                 task_to_close = Task.objects.get(pk=data['pk'])
+                
+                for solution in task_to_close.solutions.all():
+                    if solution.rate == None:
+                        return Response({"message": "Nie mozna zamknac zadania dopoki nie wszystkie rozwiazania zostaly ocenione"}, status=400)
+                    
                 task_to_close.isRated = True
                 task_to_close.isActive = False
                 task_to_close.save()
@@ -622,8 +627,6 @@ class SolutionViewSet(viewsets.ModelViewSet):
         logger = logging.getLogger(__name__)
         queryset = Solution.objects.all()
         solution = queryset.get(pk=pk)
-        # pobranie pierwszej grupy - niepotrzebne 
-        # print(solution.user.membershipGroups.all()[:1].get())
 
         serializer = SolutionSerializer(solution)
         newdict = {}
