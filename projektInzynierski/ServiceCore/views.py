@@ -741,3 +741,36 @@ class SolutionViewSet(viewsets.ModelViewSet):
             return Response({"message": "Wystapil blad podczas zapisywania ocen"}, status=500)
         
         return Response({"message": "Zadanie zostalo ocenione"}, status=200) 
+
+# Klasa obslugujaca linki rejestracyjne
+class RegistrationHashView(APIView):
+    def get(self, request, hash_string):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Proba rejestracji studenta dla hash=", hash_string)
+
+        does_hash_exist = False
+        response_message = ""
+
+        try:
+            if not RegistrationHash.objects.filter(hash_value=hash_string).exists():
+                does_hash_exist = False
+                response_message = "Link nie istnieje"
+                logger.info(response_message)
+                return Response({"value": does_hash_exist, "message": response_message}, stauts=400)    
+                
+            registration_hash = RegistrationHash.objects.get(hash_value=hash_string)
+            
+            if registration_hash.account_created:
+                does_hash_exist = True
+                response_message = "Konto na ten adres email juz zostalo zalozone"
+                logger.info(response_message)
+                return Response({"value": does_hash_exist, "message": response_message}, status=200)
+            
+            does_hash_exist = True
+            response_message = "Wypelnij formularz rejestracyjny"
+            logger.info("Podano poprawny link rejestracyjny.")
+            return Response({"value": does_hash_exist, "message": response_message, "email": registration_hash.email}, status=200)
+        except Exception as e:
+            logger.info(str(e))
+            return Response({"value": False, "message": "Wystapil nieoczekiwany blad po stronie serwera"}, status=500)
