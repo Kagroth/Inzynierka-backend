@@ -4,11 +4,10 @@ from django.utils import timezone
 
 # Create your models here.
 
-class RegistrationHash(models.Model):
-    creator = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
-    email = models.EmailField()
+class ResetPasswordHash(models.Model):
+    owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
     hash_value = models.CharField(max_length=40)
-    account_created = models.BooleanField(default=False)
+    consumed = models.BooleanField(default=False)
 
 class Language(models.Model):
     name = models.CharField(max_length=32)

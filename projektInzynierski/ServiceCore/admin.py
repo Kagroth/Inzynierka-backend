@@ -3,7 +3,7 @@ from ServiceCore.models import *
 
 # Register your models here.
 # Modele w panelu administratora
-admin.site.register(RegistrationHash)
+admin.site.register(ResetPasswordHash)
 admin.site.register(UserType)
 admin.site.register(Language)
 admin.site.register(Level)
