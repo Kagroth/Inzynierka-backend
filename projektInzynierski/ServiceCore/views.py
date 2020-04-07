@@ -212,31 +212,31 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         if pk is None:
             logger.info("Nie podano parametru pk")
-            return Response({"message": "Nie podano parametru pk"})
+            return Response({"message": "Nie podano parametru pk"}, status=400)
 
         if not Group.objects.filter(name=data['oldName'], owner=request.user).exists():
             logger.info("Grupa o nazwie " + data['oldName'] + " nie istnieje")
-            return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"})
+            return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"}, status=400)
         
         try:
-            groupToUpdate = Group.objects.get(name=data['oldName'])
+            groupToUpdate = Group.objects.get(name=data['oldName'], owner=request.user)
             groupToUpdate.name = data['groupName']
 
-            for userToAddToGroup in data['selectedUsers']:
-                user = User.objects.get(username=userToAddToGroup['username'])
+            for userToAddToGroup in data['usersToAdd']:
+                user = User.objects.get(pk=userToAddToGroup['pk'])
                 groupToUpdate.users.add(user)
             groupToUpdate.save()
 
             for userToRemoveFromGroup in data['usersToRemove']:
-                user = User.objects.get(username=userToRemoveFromGroup['username'])
+                user = User.objects.get(pk=userToRemoveFromGroup['pk'])
                 groupToUpdate.users.remove(user)
             groupToUpdate.save()
-            logger.info("Grupa " + groupToUpdate + " zostala zaktualizowana")
+            logger.info("Grupa " + groupToUpdate.name + " zostala zaktualizowana")
         except Exception as e:
             logger.info("Nastapil blad podczas aktualizacji grupy " + data['oldName'] + " - " + e)
-            return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"})
+            return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"}, status=500)
         
-        return Response({"message": "Grupa została zaktualizowana"})
+        return Response({"message": "Grupa została zaktualizowana"}, status=200)
 
     # usuniecie grupy o podanym pk
     def destroy(self, request, pk=None):
