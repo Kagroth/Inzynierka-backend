@@ -2,7 +2,9 @@ import os
 import subprocess
 import shutil
 import logging
+import time
 
+from ServiceCore.email_service import EmailService
 from ServiceCore.models import *
 from ServiceCore.serializers import *
 from ServiceCore.solution_executor import *
@@ -14,6 +16,7 @@ from ServiceCore.unit_tests_utils import create_unit_tests
 
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
+from django.core.signing import Signer
 from django.db.models import FilePathField
 from django.db import transaction
 from django.http.response import HttpResponse
@@ -742,9 +745,9 @@ class SolutionViewSet(viewsets.ModelViewSet):
         
         return Response({"message": "Zadanie zostalo ocenione"}, status=200) 
 
-# Klasa obslugujaca linki rejestracyjne
+# Klasa obslugujaca resetowanie hasla
 class ResetPasswordHashView(APIView):
-    def get(self, request, hash_string):
+    def get(self, request, hash_string=None):
         # logger        
         logger = logging.getLogger(self.__class__.__name__)
         logger.info("Proba zresetowania hasla studenta dla hash=" + str(hash_string))
@@ -765,7 +768,7 @@ class ResetPasswordHashView(APIView):
                 does_hash_exist = True
                 response_message = "Link zostal juz wykorzystany"
                 logger.info(response_message)
-                return Response({"value": does_hash_exist, "message": response_message}, status=200)
+                return Response({"value": does_hash_exist, "message": response_message}, status=406)
             
             does_hash_exist = True
             response_message = "Podaj nowe haslo"
@@ -774,3 +777,47 @@ class ResetPasswordHashView(APIView):
         except Exception as e:
             logger.info(str(e))
             return Response({"value": False, "message": "Wystapil nieoczekiwany blad po stronie serwera"}, status=500)
+
+    # metoda obsluguje utworzenie obiektu ResetPasswordHash z wykorzystaniem
+    # klasy 'django.core.signing.Signer'
+    def post(self, request, hash_string=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        data = request.data
+        print(data)
+        email_address = data['email']
+        logger.info("Utworzenie linku resetujacego haslo dla adresu email=" + str(email_address))
+        '''
+        if not User.objects.filter(email=email_address).exists():
+            response_message = "W serwisie nie ma uzytkownika zarejestrowanego na ten adres email " 
+            logger.info(response_message + str(email_address))
+            return Response({"message": response_message}, status=400)
+        
+        user = User.objects.get(email=email_address)
+        time_salt = str(time.time())
+        signer = Signer(salt=time_salt)
+        hash_sign = signer.sign(user.email)
+        hash_value = hash_sign.split(":")[1]
+
+        reset_pass_hash, created = ResetPasswordHash.objects.get_or_create(owner=user)
+
+        if created:
+            reset_pass_hash.hash_value = hash_value
+        
+        '''
+        # wyslanie maila
+        try:
+            email_service = EmailService()
+            email_service.send_reset_password_link(email_address, "abcd")
+        except Exception as e:
+            print(str(e))
+            pass
+        
+        return Response(status=200)
+
+
+        
+
+    # metoda przyjmuje dane - hash? i nowe haslo i zapisuje zmiany  
+    def put(self, request, hash_string=None):
+        pass
