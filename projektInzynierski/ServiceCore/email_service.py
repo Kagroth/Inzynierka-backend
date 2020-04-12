@@ -1,24 +1,33 @@
+import logging
+
 from django.conf import settings
 from django.core.validators import validate_email
-from django.core.mail import send_mail, EmailMultiAlternatives
+from django.core.mail import EmailMessage
 
 class EmailService():
     def send_reset_password_link(self, recipient, hash_value):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Wysylanie linku z resetowaniem hasla na adres " + str(recipient))
+
         try:
             validate_email(recipient)
+            logger.info("Adres email " + recipient + " zwalidowany poprawnie")
         except Exception as e:
-            print(str(e))
+            logger.info(str(e))
             return False
-        else:
-            print("Email ok")
 
         try:
             sender_address = settings.EMAIL_HOST_USER
-            print(sender_address)
-            
-            msg = EmailMultiAlternatives("Temat", "Tresc wiadomosci", sender_address, [recipient])
-            msg.attach_alternative('<a href="www.onet.pl">Link do strony onet pl</a>', 'text/html')
-            msg.send()
+            reset_password_link = settings.SITE_URL + '/reset_password/' + hash_value
+            message_content = 'Link do strony resetowania hasła: <br> <a href="' + reset_password_link + '">Link</a>'
+
+            email = EmailMessage("Temat", message_content, sender_address, [recipient])
+            email.content_subtype = "html"
+            email.send(fail_silently=False)
+
+            logger.info("Wyslano mail z linkiem do zresetowania hasla na adres " + recipient)
+            return True
         except Exception as e:
-            print(e)
-            pass
+            logger.info(str(e))
+            return False
