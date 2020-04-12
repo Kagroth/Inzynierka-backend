@@ -784,10 +784,13 @@ class ResetPasswordHashView(APIView):
         # logger        
         logger = logging.getLogger(self.__class__.__name__)
         data = request.data
-        print(data)
+
+        if 'email' not in data:
+            return Response({"message": "Nie podano adresu email"}, status=400)
+
         email_address = data['email']
         logger.info("Utworzenie linku resetujacego haslo dla adresu email=" + str(email_address))
-        '''
+        
         if not User.objects.filter(email=email_address).exists():
             response_message = "W serwisie nie ma uzytkownika zarejestrowanego na ten adres email " 
             logger.info(response_message + str(email_address))
@@ -800,23 +803,31 @@ class ResetPasswordHashView(APIView):
         hash_value = hash_sign.split(":")[1]
 
         reset_pass_hash, created = ResetPasswordHash.objects.get_or_create(owner=user)
-
-        if created:
-            reset_pass_hash.hash_value = hash_value
+        reset_pass_hash.hash_value = hash_value
         
-        '''
         # wyslanie maila
+        email_service = EmailService()
+        send_result = email_service.send_reset_password_link(email_address, hash_value)
+        
         try:
-            email_service = EmailService()
-            email_service.send_reset_password_link(email_address, "abcd")
+            result_message = ""
+            result_status = 200
+
+            if send_result:
+                reset_pass_hash.save()
+                result_message = "Mail z linkiem do zresetowania hasla na adres " + email_address + " zostal wyslany."
+                logger.info(result_message)
+            else:
+                reset_pass_hash.delete()
+                result_message = "Nie udalo sie wyslac maila z linkiem do zresetowania hasla na adres " + email_address + ". Obiekt RegistrationHash zostaje usuniety."
+                result_status = 500
+                logger.info(result_message)
+
+            return Response({"message": result_message, "value": send_result}, status=result_status)
         except Exception as e:
-            print(str(e))
-            pass
-        
-        return Response(status=200)
+            logger.info(str(e))
+            return Response({"message": "Nastapil blad po stronie serwera."}, status=500)
 
-
-        
 
     # metoda przyjmuje dane - hash? i nowe haslo i zapisuje zmiany  
     def put(self, request, hash_string=None):
