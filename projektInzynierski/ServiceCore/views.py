@@ -804,6 +804,7 @@ class ResetPasswordHashView(APIView):
 
         reset_pass_hash, created = ResetPasswordHash.objects.get_or_create(owner=user)
         reset_pass_hash.hash_value = hash_value
+        reset_pass_hash.consumed= False
         
         # wyslanie maila
         email_service = EmailService()
@@ -831,4 +832,37 @@ class ResetPasswordHashView(APIView):
 
     # metoda przyjmuje dane - hash? i nowe haslo i zapisuje zmiany  
     def put(self, request, hash_string=None):
-        pass
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        data = request.data
+
+        reset_password_hash = None
+
+        if not ResetPasswordHash.objects.filter(hash_value=hash_string).exists():
+            return Response({"message": "Link nie istnieje"}, status=400)
+
+        reset_password_hash = ResetPasswordHash.objects.get(hash_value=hash_string)
+
+        if reset_password_hash.consumed:
+            return Response({"message": "Link nie aktywny"}, status=400)
+        
+        data = request.data
+
+        if 'password' not in data or 'password_repeat' not in data:
+            return Response({"message": "Nie podano wszystkich danych"}, status=400)
+
+        if data['password'] != data['password_repeat']:
+            return Response({"message": "Podano rozne hasla"}, status=400)
+
+        try:
+            with transaction.atomic():
+                user_to_password_change = reset_password_hash.owner
+                user_to_password_change.set_password(data['password'])
+                reset_password_hash.consumed = True
+                reset_password_hash.save()
+                user_to_password_change.save()
+            logger.info("Haslo uzytkownika zarejestrowanego na adres " + user_to_password_change.email + " zostalo zmienione")
+            return Response({"message": "Haslo zostalo zmienione pomyslnie"}, status=200)
+        except Exception as e:
+            logger.info(str(e))
+            return Response({"message": "Nastapil nieoczekiwany blad po stronie serwera"}, status=500)
