@@ -784,7 +784,7 @@ class ResetPasswordHashView(APIView):
         # logger        
         logger = logging.getLogger(self.__class__.__name__)
         data = request.data
-
+        print(data)
         if 'email' not in data:
             return Response({"message": "Nie podano adresu email"}, status=400)
 
@@ -816,13 +816,13 @@ class ResetPasswordHashView(APIView):
 
             if send_result:
                 reset_pass_hash.save()
-                result_message = "Mail z linkiem do zresetowania hasla na adres " + email_address + " zostal wyslany."
+                result_message = "Mail z linkiem do zresetowania hasla zostal wyslany."
                 logger.info(result_message)
             else:
                 reset_pass_hash.delete()
-                result_message = "Nie udalo sie wyslac maila z linkiem do zresetowania hasla na adres " + email_address + ". Obiekt RegistrationHash zostaje usuniety."
+                result_message = "Nie udalo sie wyslac maila z linkiem do zresetowania hasla. "
                 result_status = 500
-                logger.info(result_message)
+                logger.info(result_message + ". Obiekt RegistrationHash zostaje usuniety.")
 
             return Response({"message": result_message, "value": send_result}, status=result_status)
         except Exception as e:
@@ -844,14 +844,14 @@ class ResetPasswordHashView(APIView):
         reset_password_hash = ResetPasswordHash.objects.get(hash_value=hash_string)
 
         if reset_password_hash.consumed:
-            return Response({"message": "Link nie aktywny"}, status=400)
+            return Response({"message": "Link nie aktywny"}, status=406)
         
         data = request.data
 
-        if 'password' not in data or 'password_repeat' not in data:
+        if 'password' not in data or 'passwordRepeat' not in data:
             return Response({"message": "Nie podano wszystkich danych"}, status=400)
 
-        if data['password'] != data['password_repeat']:
+        if data['password'] != data['passwordRepeat']:
             return Response({"message": "Podano rozne hasla"}, status=400)
 
         try:
