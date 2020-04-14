@@ -193,7 +193,7 @@ class JavaExecutor(SolutionExecutor):
                 solution_exercise.save()
         except Exception as e:            
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
-            return (False, "Nie udalo sie przetestowac kodu")
+            return (False, False, "Nie udalo sie przetestowac kodu")
 
         
         unit_tests_passed = False
