@@ -152,13 +152,11 @@ class PythonExecutor(SolutionExecutor):
                     if os.path.isfile(os.path.join(subdir, file)):
                         # skopiowanie unit testow
                         copy(os.path.join(subdir, file), os.path.join(self.fs.location, file))
-                        # copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
-                        # print(copyCommand)
-                        # os.popen(copyCommand)
     
     def run(self):
         if not self.isReady():
             self.logger.info("Executor nie jest gotowy do uruchomienia")
+            return (False, False, "Executor nie jest gotowy do uruchomienia")
 
         solution_exercise = None
 
