@@ -58,3 +58,26 @@ def create_unit_tests(exercise, unit_tests_data):
     else:
         print("Nie da sie utworzyc unit testow dla podanego jezyka")
 
+
+def insert_python_import_instruction(path_to_unit_test, filename):
+    unit_test_file_content_tmp = ""
+    (filename_without_extension, extension) = filename.split(".")
+
+    if extension != "py":
+        return False 
+
+    try:
+        with open(path_to_unit_test, 'r') as unit_test_file:
+            unit_test_file_content_tmp = unit_test_file.read()
+        
+        with open(path_to_unit_test, 'w') as unit_test_file:
+            import_instruction = "from " + filename_without_extension + " import * \n"
+            unit_test_file.write(import_instruction)
+
+        with open(path_to_unit_test, 'a') as unit_test_file:
+            unit_test_file.write(unit_test_file_content_tmp)
+    except Exception as e:
+        print(str(e))
+        return False
+    
+    return True
