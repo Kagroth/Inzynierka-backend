@@ -36,7 +36,7 @@ class PythonExecutor(SolutionExecutor):
             # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = 'Solution' + extensionToCheck
+                self.solutionsToRun.name = self.solutionData['filename'] = 'solution' + extensionToCheck
                 
                 destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
 
@@ -47,8 +47,11 @@ class PythonExecutor(SolutionExecutor):
         
         elif self.solutionType.name == 'Editor':
             # rozwiazanie nadeslane przez edytor
+            # Rzutowanie QueryDict na dict
+            self.solutionData = dict(self.solutionData)
+            print(self.solutionData['solution'])
             self.solutionsToRun = self.solutionData['solution']
-
+            
             if self.solutionsToRun is None:
                 self.logger.info("Nie przyslano rozwiazania")
                 return
@@ -68,13 +71,13 @@ class PythonExecutor(SolutionExecutor):
                     self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
                 
                 print(self.fs.location)
-                solutionFileName = 'Solution' + solutionExtension
+                self.solutionData['filename'] = 'solution' + solutionExtension
                 
-                destinatedPath = os.path.join(self.fs.location, solutionFileName)                
+                destinatedPath = os.path.join(self.fs.location, self.solutionData['filename'])                
 
                 try:
                     with open(destinatedPath, 'w+') as solution_file:
-                        solution_file.write(self.solutionsToRun)
+                        solution_file.write(self.solutionData['solution'][0])
                 except Exception as e:
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
@@ -100,7 +103,6 @@ class PythonExecutor(SolutionExecutor):
                 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
                 return
                         
-
         else:
             self.logger.info("Niepoprawny rodzaj rozwiazania - " + self.solutionType.name)
             self.readyToRunSolution = False
@@ -162,7 +164,7 @@ class PythonExecutor(SolutionExecutor):
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
                 solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object,
-                                                        pathToFile=os.path.join(self.fs.location, 'Solution.py'))
+                                                        pathToFile=os.path.join(self.fs.location, self.solutionData['filename']))
                 
                 if solution_exercise.exercise is None:
                     if self.task.taskType.name == 'Exercise':
