@@ -81,3 +81,37 @@ def insert_python_import_instruction(path_to_unit_test, filename):
         return False
     
     return True
+
+def insert_java_package_instruction(path_to_unit_test, package_name):
+    unit_test_file_content_tmp = ""    
+
+    try:
+        with open(path_to_unit_test, 'r') as unit_test_file:
+            unit_test_file_content_tmp = unit_test_file.read()
+        
+        with open(path_to_unit_test, 'w') as unit_test_file:
+            import_instruction = "import " + package_name + ".*; \n"
+            unit_test_file.write(import_instruction)
+
+        with open(path_to_unit_test, 'a') as unit_test_file:
+            unit_test_file.write(unit_test_file_content_tmp)
+    except Exception as e:
+        print(str(e))
+        return False
+    
+    return True
+
+def get_java_package_name_from_file(path_to_file):
+    package_line = ""
+
+    with open(path_to_file, "r") as solution_file:
+        for line in solution_file.readlines():
+            if "package" in line:
+                package_line = line
+                break
+    
+    (package_keyword, package_name) = package_line.split()
+    package_name = package_name.rstrip()
+    package_name = package_name[:-1] # usuniecie znaku ';'
+
+    return package_name
