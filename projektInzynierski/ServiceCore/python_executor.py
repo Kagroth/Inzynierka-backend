@@ -79,48 +79,6 @@ class PythonExecutor(SolutionExecutor):
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
         elif self.solutionType.name == 'GitHub-Repository':
-            '''
-                zmiana katalogu - chdir
-                git init
-                git remote add origin repository
-                git pull origin master
-                git get first py file
-                rename to Solution.py
-                zmiana katalogu na katalog glowny
-                    
-                solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)
-                getRemoteRepository(self.solutionData['repository'], solution_path)
-                
-                # sprawdzenie czy plik wybrany przez uzytkownika znajduje sie w repozytorium
-                # jesli tak to to plik jest kopiowany i jego nazwa Solution.py 
-                files = os.listdir(path=os.getcwd())
-
-                filename_with_solution = self.solutionData['repoFileName']
-
-                if filename_with_solution in files:
-                    if filename_with_solution.endswith(self.task.exercise.language.allowed_extension):
-                        old_filename_path = os.path.join(os.getcwd(), filename_with_solution)
-                        new_filename_path = os.path.join(os.getcwd(), "Solution.py")
-                            
-                        if os.path.isfile(new_filename_path):
-                            os.remove(new_filename_path)
-                        
-                        copy(old_filename_path, new_filename_path)
-
-                    else:
-                        self.logger.info("Niepoprawne rozszerzenie pliku")
-
-                    self.logger.info("Powrot do katalogu glownego")
-                    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-                else:
-                    self.logger.info("Repozytorium nie zawiera pliku o podanej nazwie")
-                    self.logger.info("Powrot do katalogu glownego")
-                    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-                    self.readyToRunSolution = False
-                    return
-                    
-            '''
             solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)
             self.fs.location = solution_path
             self.logger.info("Zmiana katalogu roboczego na " + solution_path)
