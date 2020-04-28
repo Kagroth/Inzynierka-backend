@@ -1,4 +1,4 @@
-
+import requests
 import logging
 
 from subprocess import PIPE
@@ -6,6 +6,7 @@ from shutil import copy
 
 from ServiceCore.models import Solution, SolutionExercise, SolutionTest
 from ServiceCore.solution_executor import *
+from ServiceCore.unit_tests_utils import get_java_package_name_from_file, insert_java_package_instruction
 
 class JavaExecutor(SolutionExecutor):
     def __init__(self):
@@ -77,53 +78,27 @@ class JavaExecutor(SolutionExecutor):
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
         elif self.solutionType.name == 'GitHub-Repository':
-            '''
-            zmiana katalogu - chdir
-            git init
-            git remote add origin repository
-            git pull origin master
-            get first java file
-            rename to Solution.java
-            zmiana katalogu na katalog glowny
-            '''
             solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)            
             self.fs.location = solution_path
             solution_path = os.path.join(solution_path, 'src', 'main', 'java')
             self.logger.info("Zmiana katalogu roboczego na " + solution_path)
             os.chdir(solution_path)
-
-            git_commands = [
-                ['git', 'init'],
-                ['git', 'remote', 'add', 'origin', self.solutionData['repository']],
-                ['git', 'pull', 'origin', 'master']
-            ]
-
-            for git_command in git_commands:
-                process = subprocess.run(git_command, stdout=PIPE, stderr=PIPE, shell=False)
-                self.logger.info("Wynik wykonania instrukcji " + \
-                                " ".join(git_command) + \
-                                " - " + str(process.stdout.decode("utf-8")) + \
-                                str(process.stderr.decode("utf-8")))
             
-            # jezeli w folderze nie ma pliku o 'nazwie Solution.py'
-            # to bierzemy 1 plik o rozszerzeniu allowed extension (.py) i zmieniamy 
-            # jego nazwe na Solution.py
-            files = os.listdir(path=os.getcwd())
+            # pobieranie pliku z repozytorium
+            try:
+                solution_file_binary = requests.get(self.solutionData['fileDownloadURL'])
 
-            if "Solution.java" not in files:
-                for f in files:
-                    if f.endswith(self.task.exercise.language.allowed_extension):
-                        old_filename_path = os.path.join(os.getcwd(), f)
-                        new_filename_path = os.path.join(os.getcwd(), "Solution.java")
-                        
-                        if os.path.isfile(new_filename_path):
-                            os.remove(new_filename_path)
-                        
-                        os.rename(old_filename_path, new_filename_path)
-                        break
-
-            self.logger.info("Powrot do katalogu glownego")
-            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                with open(self.solutionData['filename'], 'wb') as solution_file:
+                    solution_file.write(solution_file_binary.content)
+                
+                self.logger.info("Pobrano " +  self.solutionData['fileDownloadURL'] + " i zapisano plik: " + self.solutionData['filename'] )
+                os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                
+            except Exception as e:
+                self.logger.info("Nastapil blad pobierania pliku z GitHub i jego zapisania: " + str(e))
+                self.readyToRunSolution = False
+                os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                return
         else:
             self.logger.info("Niepoprawny rodzaj rozwiazania - " + self.solutionType.name)
             self.readyToRunSolution = False
@@ -139,6 +114,7 @@ class JavaExecutor(SolutionExecutor):
 
 
         self.copyUnitTestsToSolutionDir(exercisePath)
+        self.readyToRunSolution = True
 
     def copyUnitTestsToSolutionDir(self, exercisePath):
         # kopiowanie unit testow z katalogu Root Exercise do Root Solution
@@ -147,31 +123,47 @@ class JavaExecutor(SolutionExecutor):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
                         # skopiowanie unit testow
-                        copy(os.path.join(subdir, file), os.path.join(self.fs.location, 'src', 'test', 'java'))
-
-                        # copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, 'src', 'test', 'java'))
+                        solution_file_path = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
+                        package_name = get_java_package_name_from_file(solution_file_path)
                         
-                        # print(copyCommand)
-                        # os.popen(copyCommand)
+                        source_path = os.path.join(subdir, file)
+                        destination_path = os.path.join(self.fs.location, 'src', 'test', 'java', file)
+                        
+                        copy(source_path, destination_path)
+
+                        result = insert_java_package_instruction(destination_path, package_name)
+                        
+                        if not result:
+                            self.readyToRunSolution = False
+                            return
+
+            self.readyToRunSolution = True
 
     def run(self):
+        if not self.isReady():
+            self.logger.info("Executor nie jest gotowy do uruchomienia")
+            return (False, False, "Executor nie jest gotowy do uruchomienia")
+
         solution_exercise = None
         
         try:
-            with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
-                os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
-                
-                process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=False)
-            
-                result_file.write(process.stdout.decode("utf-8"))                           
-                result_file.write(process.stderr.decode("utf-8"))
+            os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
+            process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=True) # uruchomienie testow
 
-                print(process.stdout.decode("utf-8"))
-                print(process.stderr.decode("utf-8"))
+            process_out = process.stdout.decode("utf-8"))            
+            process_err = process.stderr.decode("utf-8"))
+
+            print(process_out)
+            print(process_err)
+
+            with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:                
+                result_file.write(process_out)                       
+                result_file.write(process_err)
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
+                
                 solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object,
-                                                                        pathToFile=os.path.join(self.fs.location, 'src', 'main', 'java', 'Solution.java'))
+                                                                        pathToFile=os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename']))
                 
                 if solution_exercise.exercise is None:
                     if self.task.taskType.name == 'Exercise':
@@ -188,10 +180,11 @@ class JavaExecutor(SolutionExecutor):
                     solution_exercise.save()
                 
                 if self.solutionType.name == 'GitHub-Repository':
-                    solution_exercise.github_link = self.solutionData['repository']
+                    solution_exercise.github_link = self.solutionData['repositoryURL']
                   
                 solution_exercise.save()
-        except Exception as e:            
+        except Exception as e:
+            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))            
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
             return (False, False, "Nie udalo sie przetestowac kodu")
 
