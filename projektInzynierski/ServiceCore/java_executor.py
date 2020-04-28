@@ -150,8 +150,8 @@ class JavaExecutor(SolutionExecutor):
             os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
             process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=True) # uruchomienie testow
 
-            process_out = process.stdout.decode("utf-8"))            
-            process_err = process.stderr.decode("utf-8"))
+            process_out = process.stdout.decode("utf-8")           
+            process_err = process.stderr.decode("utf-8")
 
             print(process_out)
             print(process_err)
@@ -161,7 +161,7 @@ class JavaExecutor(SolutionExecutor):
                 result_file.write(process_err)
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
-                
+
                 solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object,
                                                                         pathToFile=os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename']))
                 
