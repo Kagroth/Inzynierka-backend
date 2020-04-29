@@ -134,6 +134,20 @@ class JavaExecutor(SolutionExecutor):
                         solution_file_path = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
                         package_name = get_java_package_name_from_file(solution_file_path)
                         
+                        if not package_name:
+                            # brak instrukcji package, trzeba ja dodac
+                            package_name = "solution"
+                            solution_file_tmp = ""
+                            
+                            with open(solution_file_path, "r") as solution_file:
+                                solution_file_tmp = solution_file.read()
+                            
+                            with open(solution_file_path, "w") as solution_file:
+                                solution_file.write("package " + package_name + "; \n")
+                            
+                            with open(solution_file_path, "a") as solution_file:
+                                solution_file.write(solution_file_tmp)
+
                         source_path = os.path.join(subdir, file)
                         destination_path = os.path.join(self.fs.location, 'src', 'test', 'java', file)
                         
