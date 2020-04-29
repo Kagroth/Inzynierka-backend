@@ -6,19 +6,20 @@ def create_python_unit_tests(exercise, unit_tests_data):
     print(unit_tests_data)
     pathToExerciseDir = getExerciseDirectoryRootPath(exercise)
     fileName = "test_unit.py"
-
+    
     pathToFile = os.path.join(pathToExerciseDir, fileName)
 
     lines_to_write = ['import unittest\n', 'import sys\n',
-                      'from Solution import *\n', 'class FirstTest(unittest.TestCase):\n']
+                      'class FirstTest(unittest.TestCase):\n']
 
     with open(pathToFile, "w+") as unit_test_file:
         unit_test_file.writelines(lines_to_write)
 
         for index, unit_test in enumerate(unit_tests_data):
+            unit_test_file.write(
+                "\tdef test_" + str(index) + "(self):\n")
+
             for index_i, line in enumerate(unit_test.split("\n")):
-                unit_test_file.write(
-                    "\tdef test_" + str(index_i) + "(self):\n")
                 unit_test_file.write("\t\t" + line + "\n")
 
             newUnitTest = UnitTest.objects.create(
@@ -116,7 +117,7 @@ def get_java_package_name_from_file(path_to_file):
             if "package" in line:
                 package_line = line
                 break
-    
+
     if package_line == "":
         return ""
 
