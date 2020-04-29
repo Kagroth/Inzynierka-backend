@@ -35,7 +35,7 @@ class JavaExecutor(SolutionExecutor):
             # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = 'Solution' + extensionToCheck
+                self.solutionsToRun.name = self.solutionData['filename'] = 'Solution' + extensionToCheck
                 
                 destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionsToRun.name)
 
@@ -46,8 +46,10 @@ class JavaExecutor(SolutionExecutor):
             
         elif self.solutionType.name == 'Editor':
             # rozwiazanie nadeslane przez edytor
+            # Rzutowanie QueryDict na dict
+            self.solutionData = dict(self.solutionData)
             self.solutionsToRun = self.solutionData['solution']
-            
+
             if self.solutionsToRun is None:
                 self.logger.info("Nie przyslano rozwiazania")
                 return
@@ -66,14 +68,17 @@ class JavaExecutor(SolutionExecutor):
                 else:
                     self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
                 
-                print(self.fs.location)
-                solutionFileName = 'Solution' + solutionExtension
+                print(self.fs.location, "b")
+                self.solutionData['filename'] = 'Solution' + solutionExtension
 
-                destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', solutionFileName)
+                destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
                 
                 try:
-                    with open(destinatedPath, 'w+') as solution_file:
-                        solution_file.write(self.solutionsToRun)
+                    with open(destinatedPath, 'w') as solution_file:
+                        solution_file.write("package solution; \n")
+
+                    with open(destinatedPath, 'a') as solution_file:
+                        solution_file.write(self.solutionsToRun[0])
                 except Exception as e:
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
@@ -123,6 +128,9 @@ class JavaExecutor(SolutionExecutor):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
                         # skopiowanie unit testow
+                        if not file.endswith(".java"):
+                            continue
+
                         solution_file_path = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
                         package_name = get_java_package_name_from_file(solution_file_path)
                         
