@@ -116,6 +116,9 @@ def get_java_package_name_from_file(path_to_file):
             if "package" in line:
                 package_line = line
                 break
+    
+    if package_line == "":
+        return False
 
     (package_keyword, package_name) = package_line.split()
     package_name = package_name.rstrip()
