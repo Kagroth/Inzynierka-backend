@@ -35,7 +35,8 @@ class JavaExecutor(SolutionExecutor):
             # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = self.solutionData['filename'] = 'Solution' + extensionToCheck
+                self.solutionData['filename'] = self.solutionsToRun.name
+                # self.solutionsToRun.name = self.solutionData['filename'] = 'Solution' + extensionToCheck
                 
                 destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionsToRun.name)
 
