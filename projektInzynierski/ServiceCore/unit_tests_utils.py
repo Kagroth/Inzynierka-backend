@@ -37,24 +37,27 @@ def create_java_unit_tests(exercise, unit_tests_data):
     pathToFile = os.path.join(pathToUnitTestsDir, unitTestFileName)
 
     lines_to_write = ['import static org.junit.jupiter.api.Assertions.*;\n',
-                      'import org.junit.jupiter.api.Test;\n',
-                      'import static com.myapp.Solution.*;\n',
+                      'import org.junit.jupiter.api.Test;\n\n',
                       'public class UnitTest {\n']
 
     with open(pathToFile, "w+") as unit_test_file:
         unit_test_file.writelines(lines_to_write)
 
         for index, unit_test in enumerate(unit_tests_data):
+            unit_test_file.writelines(['\t@Test \n',
+                                           '\tpublic void test' + str(index) + '() { \n'])
+
             for index_i, line in enumerate(unit_test.split('\n')):
-                unit_test_file.writelines(['\t@Test \n',
-                                           '\tpublic void test' + str(index_i) + '() { \n'])
                 unit_test_file.write('\t\t' + line + '\n')
-                unit_test_file.write('\t} \n')
-            unit_test_file.write('\n}')
+            
+            unit_test_file.write('\t} \n')
+                
             newUnitTest = UnitTest.objects.create(
                 exercise=exercise, pathToFile=pathToFile, content=unit_test)
             newUnitTest.save()
-
+        
+        unit_test_file.write('\n}')
+        
 
 def create_unit_tests(exercise, unit_tests_data):
     if exercise.language.name == 'Python':
