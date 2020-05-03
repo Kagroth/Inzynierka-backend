@@ -86,20 +86,26 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def retrieve(self, request, pk=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         if pk is None:
             return Response({"message": "Nie podano nazwy uzytkownika"}, status=400)
         
-        user = User.objects.get(pk=pk)        
-        user_serializer = UserSerializer(user)
-        solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
-        tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
-        response_data = {}        
-        response_data['solutions'] = solutions_serializer.data
-        response_data['user'] = user_serializer.data
-        response_data['tasks'] = tasks_with_solutions_serializer.data
+        try:
+            user = User.objects.get(pk=pk)        
+            user_serializer = UserSerializer(user)
+            solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
+            tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
+            response_data = {}        
+            response_data['solutions'] = solutions_serializer.data
+            response_data['user'] = user_serializer.data
+            response_data['tasks'] = tasks_with_solutions_serializer.data
 
-        return Response(response_data, status=200)
-
+            return Response(response_data, status=200)
+        except Exception as e:
+            logger.info("Blad pobierania uzytkownika: " + str(e))
+            return Response("message": "Blad pobierania uzytkownika"}, status=500)
 
     # przeladowanie handlera metody POST -> tworzenie usera
     def create(self, request):
@@ -118,7 +124,7 @@ class UserViewSet(viewsets.ModelViewSet):
         userType = None
         user = None
 
-        if data['userType'] == "Student" or data['userType'] == "Teacher": 
+        if data['userType'] == "Student": 
             userType = UserType.objects.get(name=data['userType'])
         else:
             logger.info("Tworzenie uzytkownika - podano nieprawidlowy rodzaj uzytkownika")
@@ -527,7 +533,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
             newTask.save()
 
-            newTask.assignedTo.add(group)
+            newTask.assigned_to = group
             
             newTask.save()
 
@@ -555,7 +561,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 task_to_close.isActive = False
                 task_to_close.save()
 
-                assigned_to = task_to_close.assignedTo.first()
+                assigned_to = task_to_close.assigned_to
                 group_members = assigned_to.users.all()
                 solutions = task_to_close.solutions.all()
 
@@ -675,7 +681,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
         data = request.data
         print(data)
         print(data['solutionType'])     
-
+        # return Response(status=200)
         task = Task.objects.get(pk=data['taskPk'])
 
         # tworzenie glownego obiektu Solution
