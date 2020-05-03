@@ -15,6 +15,11 @@ def create_python_unit_tests(exercise, unit_tests_data):
     with open(pathToFile, "w+") as unit_test_file:
         unit_test_file.writelines(lines_to_write)
 
+        if not unit_tests_data:
+            unit_test_file.write("\tpass\n")
+            unit_test_file.write("\nif __name__ == '__main__':\n\tunittest.main()")
+            return
+
         for index, unit_test in enumerate(unit_tests_data):
             unit_test_file.write(
                 "\tdef test_" + str(index) + "(self):\n")
