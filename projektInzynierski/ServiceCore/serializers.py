@@ -95,13 +95,14 @@ class TaskTypeSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     taskType = TaskTypeSerializer()
+    assigned_to = GroupSerializer()
     exercise = ExerciseSerializer()   
     test = TestSerializer()
     solutionType = SolutionTypeSerializer()
     
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'exercise', 'test', 'isActive', 'isRated', 'solutionType')
+        fields = ('pk', 'author', 'taskType', 'assigned_to', 'title', 'exercise', 'test', 'isActive', 'isRated', 'solutionType')
 
 
 class GroupWithAssignedTasksSerializer(serializers.ModelSerializer):
@@ -128,11 +129,11 @@ class TaskWithAssignedGroupsSerializer(serializers.ModelSerializer):
     exercise = ExerciseSerializer()
     test = TestSerializer()   
     solutionType = SolutionTypeSerializer()
-    assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
+    assigned_to = GroupSerializer()
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test', 'isActive', 'isRated', 'solutionType')
+        fields = ('pk', 'author', 'taskType', 'title', 'assigned_to', 'exercise', 'test', 'isActive', 'isRated', 'solutionType')
 
 class TaskWithSolutionData(serializers.ModelSerializer):    
     author = UserSerializer()
@@ -140,12 +141,12 @@ class TaskWithSolutionData(serializers.ModelSerializer):
     exercise = ExerciseSerializer()
     test = TestSerializer()
     solutionType = SolutionTypeSerializer()   
-    assignedTo = GroupSerializer(many=True) # wyswietlenie grup do ktorych zostalo przypisane zadanie 
+    assigned_to = GroupSerializer() 
     solution = serializers.SerializerMethodField('getSolution')
 
     class Meta:
         model = Task
-        fields = ('pk', 'author', 'taskType', 'title', 'assignedTo', 'exercise', 'test' ,'isActive', 'isRated','solution', 'solutionType')
+        fields = ('pk', 'author', 'taskType', 'title', 'assigned_to', 'exercise', 'test' ,'isActive', 'isRated','solution', 'solutionType')
     
     def getSolution(self, task):
         solution = task.solutions.all()
@@ -182,10 +183,10 @@ class SolutionExerciseSerializer(serializers.ModelSerializer):
         results_file_path = ""
 
         if solution.task.taskType.name == 'Exercise':
-            solution_path = getUserSolutionPath(solution.task, solution.task.assignedTo.first(), solution.user)
+            solution_path = getUserSolutionPath(solution.task, solution.task.assigned_to, solution.user)
         else:
             solution_path = getUserSolutionPath(solution.task,
-                                                solution.task.assignedTo.first(), 
+                                                solution.task.assigned_to, 
                                                 solution.user, 
                                                 solution_exercise.exercise)
 
