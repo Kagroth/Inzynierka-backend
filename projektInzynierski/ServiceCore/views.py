@@ -105,7 +105,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(response_data, status=200)
         except Exception as e:
             logger.info("Blad pobierania uzytkownika: " + str(e))
-            return Response("message": "Blad pobierania uzytkownika"}, status=500)
+            return Response({"message": "Blad pobierania uzytkownika"}, status=500)
 
     # przeladowanie handlera metody POST -> tworzenie usera
     def create(self, request):
