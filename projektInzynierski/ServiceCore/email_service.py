@@ -20,9 +20,9 @@ class EmailService():
         try:
             sender_address = settings.EMAIL_HOST_USER
             reset_password_link = settings.SITE_URL + '/reset_password/' + hash_value
-            message_content = 'Link do strony resetowania hasła: <br> <a href="' + reset_password_link + '">Link</a>'
+            message_content = 'Link do strony resetowania hasła: <br> <a href="' + reset_password_link + '">' + reset_password_link + '</a>'
 
-            email = EmailMessage("Temat", message_content, sender_address, [recipient])
+            email = EmailMessage("Resetowanie hasła", message_content, sender_address, [recipient])
             email.content_subtype = "html"
             email.send(fail_silently=False)
 
