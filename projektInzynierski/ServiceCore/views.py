@@ -2,7 +2,9 @@ import os
 import subprocess
 import shutil
 import logging
+import time
 
+from ServiceCore.email_service import EmailService
 from ServiceCore.models import *
 from ServiceCore.serializers import *
 from ServiceCore.solution_executor import *
@@ -14,6 +16,7 @@ from ServiceCore.unit_tests_utils import create_unit_tests
 
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
+from django.core.signing import Signer
 from django.db.models import FilePathField
 from django.db import transaction
 from django.http.response import HttpResponse
@@ -83,20 +86,26 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def retrieve(self, request, pk=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+
         if pk is None:
             return Response({"message": "Nie podano nazwy uzytkownika"}, status=400)
         
-        user = User.objects.get(pk=pk)        
-        user_serializer = UserSerializer(user)
-        solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
-        tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
-        response_data = {}        
-        response_data['solutions'] = solutions_serializer.data
-        response_data['user'] = user_serializer.data
-        response_data['tasks'] = tasks_with_solutions_serializer.data
+        try:
+            user = User.objects.get(pk=pk)        
+            user_serializer = UserSerializer(user)
+            solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
+            tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
+            response_data = {}        
+            response_data['solutions'] = solutions_serializer.data
+            response_data['user'] = user_serializer.data
+            response_data['tasks'] = tasks_with_solutions_serializer.data
 
-        return Response(response_data, status=200)
-
+            return Response(response_data, status=200)
+        except Exception as e:
+            logger.info("Blad pobierania uzytkownika: " + str(e))
+            return Response({"message": "Blad pobierania uzytkownika"}, status=500)
 
     # przeladowanie handlera metody POST -> tworzenie usera
     def create(self, request):
@@ -115,7 +124,7 @@ class UserViewSet(viewsets.ModelViewSet):
         userType = None
         user = None
 
-        if data['userType'] == "Student" or data['userType'] == "Teacher": 
+        if data['userType'] == "Student": 
             userType = UserType.objects.get(name=data['userType'])
         else:
             logger.info("Tworzenie uzytkownika - podano nieprawidlowy rodzaj uzytkownika")
@@ -212,31 +221,31 @@ class GroupViewSet(viewsets.ModelViewSet):
 
         if pk is None:
             logger.info("Nie podano parametru pk")
-            return Response({"message": "Nie podano parametru pk"})
+            return Response({"message": "Nie podano parametru pk"}, status=400)
 
         if not Group.objects.filter(name=data['oldName'], owner=request.user).exists():
             logger.info("Grupa o nazwie " + data['oldName'] + " nie istnieje")
-            return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"})
+            return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"}, status=400)
         
         try:
-            groupToUpdate = Group.objects.get(name=data['oldName'])
+            groupToUpdate = Group.objects.get(name=data['oldName'], owner=request.user)
             groupToUpdate.name = data['groupName']
 
-            for userToAddToGroup in data['selectedUsers']:
-                user = User.objects.get(username=userToAddToGroup['username'])
+            for userToAddToGroup in data['usersToAdd']:
+                user = User.objects.get(pk=userToAddToGroup['pk'])
                 groupToUpdate.users.add(user)
             groupToUpdate.save()
 
             for userToRemoveFromGroup in data['usersToRemove']:
-                user = User.objects.get(username=userToRemoveFromGroup['username'])
+                user = User.objects.get(pk=userToRemoveFromGroup['pk'])
                 groupToUpdate.users.remove(user)
             groupToUpdate.save()
-            logger.info("Grupa " + groupToUpdate + " zostala zaktualizowana")
+            logger.info("Grupa " + groupToUpdate.name + " zostala zaktualizowana")
         except Exception as e:
             logger.info("Nastapil blad podczas aktualizacji grupy " + data['oldName'] + " - " + e)
-            return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"})
+            return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"}, status=500)
         
-        return Response({"message": "Grupa została zaktualizowana"})
+        return Response({"message": "Grupa została zaktualizowana"}, status=200)
 
     # usuniecie grupy o podanym pk
     def destroy(self, request, pk=None):
@@ -524,7 +533,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
             newTask.save()
 
-            newTask.assignedTo.add(group)
+            newTask.assigned_to = group
             
             newTask.save()
 
@@ -552,7 +561,7 @@ class TaskViewSet(viewsets.ModelViewSet):
                 task_to_close.isActive = False
                 task_to_close.save()
 
-                assigned_to = task_to_close.assignedTo.first()
+                assigned_to = task_to_close.assigned_to
                 group_members = assigned_to.users.all()
                 solutions = task_to_close.solutions.all()
 
@@ -672,7 +681,7 @@ class SolutionViewSet(viewsets.ModelViewSet):
         data = request.data
         print(data)
         print(data['solutionType'])     
-
+        # return Response(status=200)
         task = Task.objects.get(pk=data['taskPk'])
 
         # tworzenie glownego obiektu Solution
@@ -741,3 +750,125 @@ class SolutionViewSet(viewsets.ModelViewSet):
             return Response({"message": "Wystapil blad podczas zapisywania ocen"}, status=500)
         
         return Response({"message": "Zadanie zostalo ocenione"}, status=200) 
+
+# Klasa obslugujaca resetowanie hasla
+class ResetPasswordHashView(APIView):
+    def get(self, request, hash_string=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.info("Proba zresetowania hasla studenta dla hash=" + str(hash_string))
+
+        does_hash_exist = False
+        response_message = ""
+
+        try:
+            if not ResetPasswordHash.objects.filter(hash_value=hash_string).exists():
+                does_hash_exist = False
+                response_message = "Link nie istnieje"
+                logger.info(response_message)
+                return Response({"value": does_hash_exist, "message": response_message}, status=400)    
+                
+            registration_hash = ResetPasswordHash.objects.get(hash_value=hash_string)
+            
+            if registration_hash.consumed:
+                does_hash_exist = True
+                response_message = "Link zostal juz wykorzystany"
+                logger.info(response_message)
+                return Response({"value": does_hash_exist, "message": response_message}, status=406)
+            
+            does_hash_exist = True
+            response_message = "Podaj nowe haslo"
+            logger.info("Podano poprawny link resetowania hasla.")
+            return Response({"value": does_hash_exist, "message": response_message, "email": registration_hash.owner.email}, status=200)
+        except Exception as e:
+            logger.info(str(e))
+            return Response({"value": False, "message": "Wystapil nieoczekiwany blad po stronie serwera"}, status=500)
+
+    # metoda obsluguje utworzenie obiektu ResetPasswordHash z wykorzystaniem
+    # klasy 'django.core.signing.Signer'
+    def post(self, request, hash_string=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        data = request.data
+        print(data)
+        if 'email' not in data:
+            return Response({"message": "Nie podano adresu email"}, status=400)
+
+        email_address = data['email']
+        logger.info("Utworzenie linku resetujacego haslo dla adresu email=" + str(email_address))
+        
+        if not User.objects.filter(email=email_address).exists():
+            response_message = "W serwisie nie ma uzytkownika zarejestrowanego na ten adres email " 
+            logger.info(response_message + str(email_address))
+            return Response({"message": response_message}, status=400)
+        
+        user = User.objects.get(email=email_address)
+        time_salt = str(time.time())
+        signer = Signer(salt=time_salt)
+        hash_sign = signer.sign(user.email)
+        hash_value = hash_sign.split(":")[1]
+
+        reset_pass_hash, created = ResetPasswordHash.objects.get_or_create(owner=user)
+        reset_pass_hash.hash_value = hash_value
+        reset_pass_hash.consumed= False
+        
+        # wyslanie maila
+        email_service = EmailService()
+        send_result = email_service.send_reset_password_link(email_address, hash_value)
+        
+        try:
+            result_message = ""
+            result_status = 200
+
+            if send_result:
+                reset_pass_hash.save()
+                result_message = "Mail z linkiem do zresetowania hasla zostal wyslany."
+                logger.info(result_message)
+            else:
+                reset_pass_hash.delete()
+                result_message = "Nie udalo sie wyslac maila z linkiem do zresetowania hasla. "
+                result_status = 500
+                logger.info(result_message + ". Obiekt RegistrationHash zostaje usuniety.")
+
+            return Response({"message": result_message, "value": send_result}, status=result_status)
+        except Exception as e:
+            logger.info(str(e))
+            return Response({"message": "Nastapil blad po stronie serwera."}, status=500)
+
+
+    # metoda przyjmuje dane - hash? i nowe haslo i zapisuje zmiany  
+    def put(self, request, hash_string=None):
+        # logger        
+        logger = logging.getLogger(self.__class__.__name__)
+        data = request.data
+
+        reset_password_hash = None
+
+        if not ResetPasswordHash.objects.filter(hash_value=hash_string).exists():
+            return Response({"message": "Link nie istnieje"}, status=400)
+
+        reset_password_hash = ResetPasswordHash.objects.get(hash_value=hash_string)
+
+        if reset_password_hash.consumed:
+            return Response({"message": "Link nie aktywny"}, status=406)
+        
+        data = request.data
+
+        if 'password' not in data or 'passwordRepeat' not in data:
+            return Response({"message": "Nie podano wszystkich danych"}, status=400)
+
+        if data['password'] != data['passwordRepeat']:
+            return Response({"message": "Podano rozne hasla"}, status=400)
+
+        try:
+            with transaction.atomic():
+                user_to_password_change = reset_password_hash.owner
+                user_to_password_change.set_password(data['password'])
+                reset_password_hash.consumed = True
+                reset_password_hash.save()
+                user_to_password_change.save()
+            logger.info("Haslo uzytkownika zarejestrowanego na adres " + user_to_password_change.email + " zostalo zmienione")
+            return Response({"message": "Haslo zostalo zmienione pomyslnie"}, status=200)
+        except Exception as e:
+            logger.info(str(e))
+            return Response({"message": "Nastapil nieoczekiwany blad po stronie serwera"}, status=500)

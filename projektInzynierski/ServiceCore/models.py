@@ -4,6 +4,11 @@ from django.utils import timezone
 
 # Create your models here.
 
+class ResetPasswordHash(models.Model):
+    owner = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
+    hash_value = models.CharField(max_length=40)
+    consumed = models.BooleanField(default=False)
+
 class Language(models.Model):
     name = models.CharField(max_length=32)
     allowed_extension = models.CharField(max_length=16, blank=True, null=True)
@@ -85,6 +90,21 @@ class TaskType(models.Model):
     def __str__(self):
         return self.name
 
+
+# Klasa reprezentuje grupe skladajaca sie z uzytkownikow (studentow)
+#   - name - nazwa grupy
+#   - owner - wlasciciel grupy
+#   - users - uzytkownicy
+#   - tasks - zadania przypisane konkretnej grupie
+class Group(models.Model):
+    name = models.CharField(max_length=32)
+    owner = models.ForeignKey(User, related_name="group", blank=True, null=True, on_delete=models.CASCADE)
+    users = models.ManyToManyField(User, related_name="membershipGroups", blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 # Klasa reprezentuje zadanie ktore mozna przydzielac studentom.
 #   - author - autor zadania
 #   - taskType - rodzaj zadania (Test/kolokwium lub Exercise/cwiczenie)
@@ -100,6 +120,7 @@ class Task(models.Model):
     title = models.CharField(max_length=64, blank=True, null=True)
     exercise = models.ForeignKey(Exercise, null=True, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, blank=True, null=True, on_delete=models.CASCADE)
+    assigned_to = models.ForeignKey(Group, related_name="tasks", blank=True, null=True, on_delete=models.CASCADE)
     isActive = models.BooleanField(default=True)
     isRated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -107,20 +128,6 @@ class Task(models.Model):
     def __str__(self):
         return self.author.username + " - " + self.taskType.name + " - " + self.title
 
-
-# Klasa reprezentuje grupe skladajaca sie z uzytkownikow (studentow)
-#   - name - nazwa grupy
-#   - owner - wlasciciel grupy
-#   - users - uzytkownicy
-#   - tasks - zadania przypisane konkretnej grupie
-class Group(models.Model):
-    name = models.CharField(max_length=32)
-    owner = models.ForeignKey(User, related_name="group", blank=True, null=True, on_delete=models.CASCADE)
-    users = models.ManyToManyField(User, related_name="membershipGroups", blank=True)
-    tasks = models.ManyToManyField(Task, related_name="assignedTo", blank=True)
-
-    def __str__(self):
-        return self.name
 
 # Klasa reprezentuje rozwiazanie nadeslane przez uzytkownika
 #   - pathToFile - sciezka do pliku z rozwiazaniem

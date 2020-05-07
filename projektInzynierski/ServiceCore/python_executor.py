@@ -1,11 +1,13 @@
 
 import logging
+import requests
 
 from subprocess import PIPE
 from shutil import copy
 
 from ServiceCore.models import Solution, SolutionExercise, SolutionTest, Exercise
 from ServiceCore.solution_executor import *
+from ServiceCore.unit_tests_utils import insert_python_import_instruction
 
 class PythonExecutor(SolutionExecutor):
     def __init__(self):
@@ -34,7 +36,7 @@ class PythonExecutor(SolutionExecutor):
             # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
             for group in self.task.assignedTo.all():
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = 'Solution' + extensionToCheck
+                self.solutionsToRun.name = self.solutionData['filename'] = 'solution' + extensionToCheck
                 
                 destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
 
@@ -45,8 +47,11 @@ class PythonExecutor(SolutionExecutor):
         
         elif self.solutionType.name == 'Editor':
             # rozwiazanie nadeslane przez edytor
+            # Rzutowanie QueryDict na dict
+            self.solutionData = dict(self.solutionData)
+            print(self.solutionData['solution'])
             self.solutionsToRun = self.solutionData['solution']
-
+            
             if self.solutionsToRun is None:
                 self.logger.info("Nie przyslano rozwiazania")
                 return
@@ -66,69 +71,43 @@ class PythonExecutor(SolutionExecutor):
                     self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
                 
                 print(self.fs.location)
-                solutionFileName = 'Solution' + solutionExtension
+                self.solutionData['filename'] = 'solution' + solutionExtension
                 
-                destinatedPath = os.path.join(self.fs.location, solutionFileName)                
+                destinatedPath = os.path.join(self.fs.location, self.solutionData['filename'])                
 
                 try:
                     with open(destinatedPath, 'w+') as solution_file:
-                        solution_file.write(self.solutionsToRun)
+                        solution_file.write(self.solutionData['solution'][0])
                 except Exception as e:
                     self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
         elif self.solutionType.name == 'GitHub-Repository':
-            '''
-                zmiana katalogu - chdir
-                git init
-                git remote add origin repository
-                git pull origin master
-                git get first py file
-                rename to Solution.py
-                zmiana katalogu na katalog glowny
-            '''
             solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)
             self.fs.location = solution_path
             self.logger.info("Zmiana katalogu roboczego na " + solution_path)
             os.chdir(solution_path)
 
-            git_commands = [
-                ['git', 'init'],
-                ['git', 'remote', 'add', 'origin', self.solutionData['repository']],
-                ['git', 'pull', 'origin', 'master']
-            ]
+            # pobieranie pliku z repozytorium
+            try:
+                solution_file_binary = requests.get(self.solutionData['fileDownloadURL'])
 
-            for git_command in git_commands:
-                process = subprocess.run(git_command, stdout=PIPE, stderr=PIPE, shell=False)
-                self.logger.info("Wynik wykonania instrukcji " + \
-                                " ".join(git_command) + \
-                                " - " + str(process.stdout.decode("utf-8")) + \
-                                str(process.stderr.decode("utf-8")))
-            
-            # jezeli w folderze nie ma pliku o 'nazwie Solution.py'
-            # to bierzemy 1 plik o rozszerzeniu allowed extension (.py) i zmieniamy 
-            # jego nazwe na Solution.py
-            files = os.listdir(path=os.getcwd())
-
-            if "Solution.py" not in files:
-                for f in files:
-                    if f.endswith(self.task.exercise.language.allowed_extension):
-                        old_filename_path = os.path.join(os.getcwd(), f)
-                        new_filename_path = os.path.join(os.getcwd(), "Solution.py")
+                with open(self.solutionData['filename'], 'wb') as solution_file:
+                    solution_file.write(solution_file_binary.content)
+                
+                self.logger.info("Pobrano " +  self.solutionData['fileDownloadURL'] + " i zapisano plik: " + self.solutionData['filename'] )
+                os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                
+            except Exception as e:
+                self.logger.info("Nastapil blad pobierania pliku z GitHub i jego zapisania: " + str(e))
+                self.readyToRunSolution = False
+                os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                return
                         
-                        if os.path.isfile(new_filename_path):
-                            os.remove(new_filename_path)
-                        
-                        os.rename(old_filename_path, new_filename_path)
-                        break
-
-            self.logger.info("Powrot do katalogu glownego")
-            os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            
         else:
             self.logger.info("Niepoprawny rodzaj rozwiazania - " + self.solutionType.name)
             self.readyToRunSolution = False
             return
-
+        
         # update command - dodanie lokalizacji self.fs.location do polecenia 
         self.testCommand.append(self.fs.location)
 
@@ -146,19 +125,28 @@ class PythonExecutor(SolutionExecutor):
     
     def copyUnitTestsToSolutionDir(self, exercisePath):
         # kopiowanie unit testow z katalogu Root Exercise do Root Solution
+        # oraz dodanie do kazdego testu instrukcji import
         if os.path.isdir(exercisePath):
             for subdir, dirs, files in os.walk(exercisePath):
                 for file in files:
                     if os.path.isfile(os.path.join(subdir, file)):
                         # skopiowanie unit testow
-                        copy(os.path.join(subdir, file), os.path.join(self.fs.location, file))
-                        # copyCommand = 'copy ' + str(os.path.join(subdir, file)) + ' ' + str(os.path.join(self.fs.location, file))
-                        # print(copyCommand)
-                        # os.popen(copyCommand)
+                        source_path = os.path.join(subdir, file)
+                        destination_path = os.path.join(self.fs.location, file)
+                        copy(source_path, destination_path)
+
+                        result = insert_python_import_instruction(destination_path, self.solutionData['filename'])
+                        
+                        if not result:
+                            self.readyToRunSolution = False
+                            return
+
+            self.readyToRunSolution = True
     
     def run(self):
         if not self.isReady():
             self.logger.info("Executor nie jest gotowy do uruchomienia")
+            return (False, False, "Executor nie jest gotowy do uruchomienia")
 
         solution_exercise = None
 
@@ -176,7 +164,7 @@ class PythonExecutor(SolutionExecutor):
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
                 solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object,
-                                                        pathToFile=os.path.join(self.fs.location, 'Solution.py'))
+                                                        pathToFile=os.path.join(self.fs.location, self.solutionData['filename']))
                 
                 if solution_exercise.exercise is None:
                     if self.task.taskType.name == 'Exercise':
@@ -193,7 +181,7 @@ class PythonExecutor(SolutionExecutor):
                     solution_exercise.save()
 
                 if self.solutionType.name == 'GitHub-Repository':
-                    solution_exercise.github_link = self.solutionData['repository']
+                    solution_exercise.github_link = self.solutionData['repositoryURL']
                 
                 solution_exercise.save()
         except Exception as e:

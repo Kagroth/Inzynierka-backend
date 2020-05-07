@@ -150,6 +150,8 @@ def createExerciseSolutionDirectory(task):
     #           - UserB solution
     #       - GroupB dir
     #           - UserC solution
+    group = task.assigned_to
+    
     directoryName = getTaskSolutionsDirectoryName(task)
 
     cwd = os.getcwd()
@@ -158,29 +160,26 @@ def createExerciseSolutionDirectory(task):
     if not createDirectory(pathToSolution):
         return False
 
-    # iterowanie po wszystkich grupach mimo, ze grupa powinna byc tylko 1
-    for group in task.assignedTo.all():
-        groupName = group.name + '-' + str(group.pk)
-        pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
-        created = createDirectory(pathToAssignedGroupSolution)
+    groupName = group.name + '-' + str(group.pk)
+    pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
+    created = createDirectory(pathToAssignedGroupSolution)
+
+    if not created:
+        return False
+        
+    for member in group.users.all():
+        memberName = member.username.replace(" ", "") + '-' + str(member.pk)
+        pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
+
+        created = createDirectory(pathToGroupMemberSolution)
 
         if not created:
             return False
-        
-        for member in group.users.all():
-            memberName = member.username.replace(" ", "") + '-' + str(member.pk)
-            pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
 
-            created = createDirectory(pathToGroupMemberSolution)
-
-            if not created:
-                return False
-            
-            if task.exercise.language.name == 'Java':
-                javaTemplateDirPath = os.path.join(cwd, EXERCISES_TEMPLATES_DIRECTORY_ROOT, task.exercise.language.name.lower())
-                copy_tree(javaTemplateDirPath, pathToGroupMemberSolution)
-
-
+        # skopiowanie template z EXERCISES_TEMPLATES_DIRECTORY_ROOT do folderu z rozwiazaniem uzytkownika      
+        if task.exercise.language.name == 'Java':
+            javaTemplateDirPath = os.path.join(cwd, EXERCISES_TEMPLATES_DIRECTORY_ROOT, task.exercise.language.name.lower())
+            copy_tree(javaTemplateDirPath, pathToGroupMemberSolution)
 
     return True
 
@@ -192,7 +191,8 @@ def createTestSolutionDirectory(task):
     #       - GroupA
     #           - UserA dir
     #               - ExerciseA dir
-    #               - ExerciseB dir 
+    #               - ExerciseB dir
+    group = task.assigned_to 
     directoryName = getTaskSolutionsDirectoryName(task)
     cwd = os.getcwd()
     pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
@@ -200,32 +200,30 @@ def createTestSolutionDirectory(task):
     if not createDirectory(pathToSolution):
         return False
     
-    # iterowanie po wszystkich grupach mimo, ze grupa powinna byc tylko 1
-    for group in task.assignedTo.all():
-        groupName = group.name + '-' + str(group.pk)
-        pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
-        created = createDirectory(pathToAssignedGroupSolution)
+    groupName = group.name + '-' + str(group.pk)
+    pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
+    created = createDirectory(pathToAssignedGroupSolution)
 
-        if not created:
+    if not created:
+        return False
+
+    for member in group.users.all():
+        memberName = member.username.replace(" ", "") + '-' + str(member.pk)
+        pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
+
+        if not createDirectory(pathToGroupMemberSolution):
             return False
 
-        for member in group.users.all():
-            memberName = member.username.replace(" ", "") + '-' + str(member.pk)
-            pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
+        for exercise in task.test.exercises.all():
+            exerciseDirName = getExerciseDirectoryName(exercise)
+            exerciseInTestPath = os.path.join(pathToGroupMemberSolution, exerciseDirName)
 
-            if not createDirectory(pathToGroupMemberSolution):
+            if not createDirectory(exerciseInTestPath):
                 return False
-
-            for exercise in task.test.exercises.all():
-                exerciseDirName = getExerciseDirectoryName(exercise)
-                exerciseInTestPath = os.path.join(pathToGroupMemberSolution, exerciseDirName)
-
-                if not createDirectory(exerciseInTestPath):
-                    return False
                 
-                if exercise.language.name == 'Java':
-                    exerciseRootPath = getExerciseDirectoryRootPath(exercise)
-                    copy_tree(exerciseRootPath, exerciseInTestPath)
+            if exercise.language.name == 'Java':
+                exerciseRootPath = getExerciseDirectoryRootPath(exercise)
+                copy_tree(exerciseRootPath, exerciseInTestPath)
 
     return True
 
@@ -234,17 +232,19 @@ def createDirectoryForTaskSolutions(task):
     typeOfTask = task.taskType.name
     print(typeOfTask)
     
+    result = False
+
     if typeOfTask == "Test":
-        createTestSolutionDirectory(task)
+        result = createTestSolutionDirectory(task)
     elif typeOfTask == "Exercise":
-        createExerciseSolutionDirectory(task)
+        result = createExerciseSolutionDirectory(task)
     else:
         return (
             "Podano niepoprawny rodzaj zadania",
             False
         )
 
-    return True
+    return result
 
 
 
