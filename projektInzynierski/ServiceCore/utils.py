@@ -148,8 +148,6 @@ def createExerciseSolutionDirectory(task):
     #       - GroupA dir
     #           - UserA solution
     #           - UserB solution
-    #       - GroupB dir
-    #           - UserC solution
     group = task.assigned_to
     
     directoryName = getTaskSolutionsDirectoryName(task)
@@ -246,5 +244,96 @@ def createDirectoryForTaskSolutions(task):
 
     return result
 
+def createAllUserSolutionDirectory(group, user):
+    # funkcja wykorzystywana w momencie dodania nowego uzytkownika do grupy
+    # dla tego uzytkownika tworzone sa katalogi z rozwiazaniami w kazdym zadaniu 
+    # przypisanym grupie do ktorej zostal dodany
+    tasks = group.tasks.all()
+    result = False
 
+    for task in tasks:
+        task_type = task.taskType.name
 
+        if task_type == "Test":
+            directoryName = getTaskSolutionsDirectoryName(task)
+            cwd = os.getcwd()
+            pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
+            
+            groupName = group.name + '-' + str(group.pk)
+            pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
+            
+            memberName = user.username.replace(" ", "") + '-' + str(user.pk)
+            pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
+
+            if not createDirectory(pathToGroupMemberSolution):
+                return False
+
+            for exercise in task.test.exercises.all():
+                exerciseDirName = getExerciseDirectoryName(exercise)
+                exerciseInTestPath = os.path.join(pathToGroupMemberSolution, exerciseDirName)
+
+                if not createDirectory(exerciseInTestPath):
+                    return False
+                        
+                if exercise.language.name == 'Java':
+                    exerciseRootPath = getExerciseDirectoryRootPath(exercise)
+                    copy_tree(exerciseRootPath, exerciseInTestPath)
+
+        elif task_type == "Exercise":            
+            directoryName = getTaskSolutionsDirectoryName(task)
+
+            cwd = os.getcwd()
+            pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
+
+            groupName = group.name + '-' + str(group.pk)
+            pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
+                
+            memberName = user.username.replace(" ", "") + "-" + str(user.pk)
+            pathToGroupMemberSolution = os.path.join(pathToAssignedGroupSolution, memberName)
+
+            created = createDirectory(pathToGroupMemberSolution)
+
+            if not created:
+                return False
+
+            # skopiowanie template z EXERCISES_TEMPLATES_DIRECTORY_ROOT do folderu z rozwiazaniem uzytkownika      
+            if task.exercise.language.name == 'Java':
+                javaTemplateDirPath = os.path.join(cwd, EXERCISES_TEMPLATES_DIRECTORY_ROOT, task.exercise.language.name.lower())
+                copy_tree(javaTemplateDirPath, pathToGroupMemberSolution)
+
+            result = True
+        else:
+            return False
+
+    return result
+
+def changeGroupSolutionDirectoryName(group, newGroupName):
+    # funkcja zmienia nazwe katalogow z rozwiazaniem 
+    tasks = group.tasks.all()
+    result = False
+
+    for task in tasks:
+        task_type = task.taskType.name
+        directoryName = ""
+
+        if task_type == "Test":
+            directoryName = getTaskSolutionsDirectoryName(task)
+        elif task_type == "Exercise":
+            directoryName = getTaskSolutionsDirectoryName(task)
+        else:
+            return False
+
+        cwd = os.getcwd()
+        pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
+        
+        groupName = group.name + '-' + str(group.pk)
+        newGroupNameDir = newGroupName + '-' + str(group.pk)
+        
+        pathToAssignedGroupSolution = os.path.join(pathToSolution, groupName)
+        pathToAssignedGroupSolutionWithNewGroupName = os.path.join(pathToSolution, newGroupNameDir)
+
+        os.rename(pathToAssignedGroupSolution, pathToAssignedGroupSolutionWithNewGroupName)
+
+        result = True
+
+    return result

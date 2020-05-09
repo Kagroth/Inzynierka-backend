@@ -227,22 +227,31 @@ class GroupViewSet(viewsets.ModelViewSet):
             logger.info("Grupa o nazwie " + data['oldName'] + " nie istnieje")
             return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"}, status=400)
         
+        if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
+            logger.info("Grupa o nazwie " + data['groupName'] + " juz istnieje")
+            return Response({"message": "Juz posiadasz grupe o takiej nazwie!"}, status=400)
+
         try:
-            groupToUpdate = Group.objects.get(name=data['oldName'], owner=request.user)
-            groupToUpdate.name = data['groupName']
+            groupToUpdate = Group.objects.get(name=data['oldName'], owner=request.user)            
 
             for userToAddToGroup in data['usersToAdd']:
                 user = User.objects.get(pk=userToAddToGroup['pk'])
                 groupToUpdate.users.add(user)
+                createAllUserSolutionDirectory(groupToUpdate, user)
             groupToUpdate.save()
 
             for userToRemoveFromGroup in data['usersToRemove']:
                 user = User.objects.get(pk=userToRemoveFromGroup['pk'])
                 groupToUpdate.users.remove(user)
+            groupToUpdate.save()           
+
+            changeGroupSolutionDirectoryName(groupToUpdate, data['groupName']) # (obiekt Group ze stara nazwa, nowa nazwa grupy)
+            groupToUpdate.name = data['groupName']
             groupToUpdate.save()
+
             logger.info("Grupa " + groupToUpdate.name + " zostala zaktualizowana")
         except Exception as e:
-            logger.info("Nastapil blad podczas aktualizacji grupy " + data['oldName'] + " - " + e)
+            logger.info("Nastapil blad podczas aktualizacji grupy " + data['oldName'] + " - " + str(e))
             return Response({"message": "Nastąpił błąd podczas aktualizacji grupy"}, status=500)
         
         return Response({"message": "Grupa została zaktualizowana"}, status=200)
