@@ -227,9 +227,10 @@ class GroupViewSet(viewsets.ModelViewSet):
             logger.info("Grupa o nazwie " + data['oldName'] + " nie istnieje")
             return Response({"message": "Grupa ktora chcesz edytowac nie istnieje"}, status=400)
         
-        if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
-            logger.info("Grupa o nazwie " + data['groupName'] + " juz istnieje")
-            return Response({"message": "Juz posiadasz grupe o takiej nazwie!"}, status=400)
+        if data['groupName'] != data['oldName']:
+            if Group.objects.filter(name=data['groupName'], owner=request.user).exists():
+                logger.info("Grupa o nazwie " + data['groupName'] + " juz istnieje")
+                return Response({"message": "Juz posiadasz grupe o takiej nazwie!"}, status=400)
 
         try:
             groupToUpdate = Group.objects.get(name=data['oldName'], owner=request.user)            
