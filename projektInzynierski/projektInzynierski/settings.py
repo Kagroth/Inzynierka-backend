@@ -196,4 +196,4 @@ LOGGING = {
 }
 
 # Adres pod ktorym dziala aplikacja
-SITE_URL = 'http://localhost:8080'
+SITE_URL = 'http://kamil-bania-inz.s3-website.eu-north-1.amazonaws.com'
