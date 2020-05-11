@@ -33,17 +33,17 @@ class PythonExecutor(SolutionExecutor):
                 self.logger.info("Niepoprawny format pliku")
                 return
             
-            # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
-            for group in self.task.assignedTo.all():
-                self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionsToRun.name = self.solutionData['filename'] = 'solution' + extensionToCheck
-                
-                destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
+            group = self.task.assigned_to
 
-                if os.path.isfile(destinatedPath):
-                    os.remove(destinatedPath)
+            self.fs.location = getUserSolutionPath(self.task, group, self.user)
+            self.solutionsToRun.name = self.solutionData['filename'] = 'solution' + extensionToCheck
                 
-                self.fs.save(destinatedPath, self.solutionsToRun)
+            destinatedPath = os.path.join(self.fs.location, self.solutionsToRun.name)
+
+            if os.path.isfile(destinatedPath):
+                os.remove(destinatedPath)
+                
+            self.fs.save(destinatedPath, self.solutionsToRun)
         
         elif self.solutionType.name == 'Editor':
             # rozwiazanie nadeslane przez edytor
