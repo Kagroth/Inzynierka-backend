@@ -32,18 +32,18 @@ class JavaExecutor(SolutionExecutor):
                 self.logger.info("Niepoprawny format pliku")
                 return
 
-            # iterowanie po wszystkich grupach mimo ze powinna byc tylko jedna
-            for group in self.task.assignedTo.all():
-                self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                self.solutionData['filename'] = self.solutionsToRun.name
-                # self.solutionsToRun.name = self.solutionData['filename'] = 'Solution' + extensionToCheck
-                
-                destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionsToRun.name)
+            group = self.task.assigned_to
 
-                if os.path.isfile(destinatedPath):
-                    os.remove(destinatedPath)
+            self.fs.location = getUserSolutionPath(self.task, group, self.user)
+            # self.solutionData['filename'] = self.solutionsToRun.name
+            self.solutionsToRun.name = self.solutionData['filename'] = 'Solution' + extensionToCheck
                 
-                self.fs.save(destinatedPath, self.solutionsToRun)
+            destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionsToRun.name)
+
+            if os.path.isfile(destinatedPath):
+                os.remove(destinatedPath)
+                
+            self.fs.save(destinatedPath, self.solutionsToRun)
             
         elif self.solutionType.name == 'Editor':
             # rozwiazanie nadeslane przez edytor
@@ -63,28 +63,28 @@ class JavaExecutor(SolutionExecutor):
                 solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.allowed_extension
             
             # tworze plik z rozwiazaniem
-            for group in self.task.assignedTo.all():
-                if self.task.taskType.name == 'Exercise':
-                    self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                else:
-                    self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+            group = self.task.assigned_to
+            
+            if self.task.taskType.name == 'Exercise':
+                self.fs.location = getUserSolutionPath(self.task, group, self.user)
+            else:
+                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
                 
-                print(self.fs.location, "b")
-                self.solutionData['filename'] = 'Solution' + solutionExtension
+            self.solutionData['filename'] = 'Solution' + solutionExtension
 
-                destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
+            destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
                 
-                try:
-                    with open(destinatedPath, 'w') as solution_file:
-                        solution_file.write("package solution; \n")
+            try:
+                with open(destinatedPath, 'w') as solution_file:
+                    solution_file.write("package solution; \n")
 
-                    with open(destinatedPath, 'a') as solution_file:
-                        solution_file.write(self.solutionsToRun[0])
-                except Exception as e:
-                    self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
+                with open(destinatedPath, 'a') as solution_file:
+                    solution_file.write(self.solutionsToRun[0])
+            except Exception as e:
+                self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
         elif self.solutionType.name == 'GitHub-Repository':
-            solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)            
+            solution_path = getUserSolutionPath(self.task, self.task.assigned_to, self.user)            
             self.fs.location = solution_path
             solution_path = os.path.join(solution_path, 'src', 'main', 'java')
             self.logger.info("Zmiana katalogu roboczego na " + solution_path)

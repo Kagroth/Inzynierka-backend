@@ -64,25 +64,26 @@ class PythonExecutor(SolutionExecutor):
                 solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.allowed_extension
             
             # tworze plik z rozwiazaniem
-            for group in self.task.assignedTo.all():
-                if self.task.taskType.name == 'Exercise':
-                    self.fs.location = getUserSolutionPath(self.task, group, self.user)
-                else:
-                    self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+            group = self.task.assigned_to
                 
-                print(self.fs.location)
-                self.solutionData['filename'] = 'solution' + solutionExtension
+            if self.task.taskType.name == 'Exercise':
+                self.fs.location = getUserSolutionPath(self.task, group, self.user)
+            else:
+                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
                 
-                destinatedPath = os.path.join(self.fs.location, self.solutionData['filename'])                
+            print(self.fs.location)
+            self.solutionData['filename'] = 'solution' + solutionExtension
+                
+            destinatedPath = os.path.join(self.fs.location, self.solutionData['filename'])                
 
-                try:
-                    with open(destinatedPath, 'w+') as solution_file:
-                        solution_file.write(self.solutionData['solution'][0])
-                except Exception as e:
-                    self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
+            try:
+                with open(destinatedPath, 'w+') as solution_file:
+                    solution_file.write(self.solutionData['solution'][0])
+            except Exception as e:
+                self.logger.info("Nie udalo sie zapisac rozwiazania - " + str(e))
 
         elif self.solutionType.name == 'GitHub-Repository':
-            solution_path = getUserSolutionPath(self.task, self.task.assignedTo.first(), self.user)
+            solution_path = getUserSolutionPath(self.task, self.task.assigned_to, self.user)
             self.fs.location = solution_path
             self.logger.info("Zmiana katalogu roboczego na " + solution_path)
             os.chdir(solution_path)
