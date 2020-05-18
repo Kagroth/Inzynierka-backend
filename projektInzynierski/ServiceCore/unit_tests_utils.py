@@ -2,7 +2,7 @@ from ServiceCore.utils import *
 from ServiceCore.models import UnitTest
 
 
-def create_python_unit_tests(exercise, unit_tests_data):
+def create_python_unit_tests(exercise, unit_tests_data, save_model=True):
     print(unit_tests_data)
     pathToExerciseDir = getExerciseDirectoryRootPath(exercise)
     fileName = "test_unit.py"
@@ -27,14 +27,15 @@ def create_python_unit_tests(exercise, unit_tests_data):
             for index_i, line in enumerate(unit_test.split("\n")):
                 unit_test_file.write("\t\t" + line + "\n")
 
-            newUnitTest = UnitTest.objects.create(
-                exercise=exercise, pathToFile=pathToFile, content=unit_test)
-            newUnitTest.save()
+            if save_model:
+                newUnitTest = UnitTest.objects.create(
+                    exercise=exercise, pathToFile=pathToFile, content=unit_test)
+                newUnitTest.save()
 
         unit_test_file.write("\nif __name__ == '__main__':\n\tunittest.main()")
 
 
-def create_java_unit_tests(exercise, unit_tests_data):
+def create_java_unit_tests(exercise, unit_tests_data, save_model=True):
     print(unit_tests_data)
     pathToExerciseDir = getExerciseDirectoryRootPath(exercise)
     pathToUnitTestsDir = os.path.join(pathToExerciseDir, 'src', 'test', 'java')
@@ -57,18 +58,19 @@ def create_java_unit_tests(exercise, unit_tests_data):
             
             unit_test_file.write('\t} \n')
                 
-            newUnitTest = UnitTest.objects.create(
-                exercise=exercise, pathToFile=pathToFile, content=unit_test)
-            newUnitTest.save()
+            if save_model:    
+                newUnitTest = UnitTest.objects.create(
+                    exercise=exercise, pathToFile=pathToFile, content=unit_test)
+                newUnitTest.save()
         
         unit_test_file.write('\n}')
         
 
-def create_unit_tests(exercise, unit_tests_data):
+def create_unit_tests(exercise, unit_tests_data, save_model=True):
     if exercise.language.name == 'Python':
-        create_python_unit_tests(exercise, unit_tests_data)
+        create_python_unit_tests(exercise, unit_tests_data, save_model)
     elif exercise.language.name == 'Java':
-        create_java_unit_tests(exercise, unit_tests_data)
+        create_java_unit_tests(exercise, unit_tests_data, save_model)
     else:
         print("Nie da sie utworzyc unit testow dla podanego jezyka")
 
