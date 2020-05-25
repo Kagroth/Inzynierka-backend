@@ -128,7 +128,7 @@ class UserViewSet(viewsets.ModelViewSet):
             userType = UserType.objects.get(name=data['userType'])
         else:
             logger.info("Tworzenie uzytkownika - podano nieprawidlowy rodzaj uzytkownika")
-            return Response({"message": userCreationFailed})
+            return Response({"message": userCreationFailed}, status=400)
 
         try:
             if User.objects.filter(username=data['username']).exists():
@@ -137,7 +137,7 @@ class UserViewSet(viewsets.ModelViewSet):
             
             if User.objects.filter(email=data['email']).exists():
                 logger.info(emailAlreadyExists)
-                return Response({"message": emailAlreadyExists})
+                return Response({"message": emailAlreadyExists}, status=400)
 
             user = User.objects.create_user(username=data['username'],
                                         first_name=data['firstname'],
@@ -147,17 +147,17 @@ class UserViewSet(viewsets.ModelViewSet):
             user.save()
         except Exception as e:
             logger.info("Nie udalo się utworzyć obiektu typu User " + e)
-            return Response({"message": serverError})
+            return Response({"message": serverError}, status=500)
 
         try: 
             profile = Profile.objects.create(user=user, userType=userType)
             profile.save()
         except:
             logger.info("Nie udalo sie utworzyc obiektu typu Profile")
-            return Response({"message": serverError})
+            return Response({"message": serverError}, status=500)
 
         logger.info(successMessage)
-        return Response({"message": successMessage})
+        return Response({"message": successMessage}, status=200)
 
  
 class StudentViewSet(viewsets.ModelViewSet):
