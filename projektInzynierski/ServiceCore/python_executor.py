@@ -186,7 +186,7 @@ class PythonExecutor(SolutionExecutor):
                     solution_exercise.save()
 
                 if self.solutionType.name == 'GitHub-Repository':
-                    solution_exercise.github_link = self.solutionData['repositoryURL']
+                    solution_exercise.github_link = self.solutionData['fileDownloadURL']
                 
                 solution_exercise.save()
         except Exception as e:
