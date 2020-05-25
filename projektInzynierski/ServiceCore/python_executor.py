@@ -61,7 +61,8 @@ class PythonExecutor(SolutionExecutor):
             if self.task.taskType.name == 'Exercise':
                 solutionExtension = self.task.exercise.language.allowed_extension
             else:
-                solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.allowed_extension
+                exercise_pk = str(self.solutionData['exercisePk'][0])
+                solutionExtension = self.task.test.exercises.get(pk=exercise_pk).language.allowed_extension
             
             # tworze plik z rozwiazaniem
             group = self.task.assigned_to
@@ -69,7 +70,8 @@ class PythonExecutor(SolutionExecutor):
             if self.task.taskType.name == 'Exercise':
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
             else:
-                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+                exercise_pk = str(self.solutionData['exercisePk'][0])
+                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=exercise_pk))
                 
             print(self.fs.location)
             self.solutionData['filename'] = 'solution' + solutionExtension
@@ -118,7 +120,8 @@ class PythonExecutor(SolutionExecutor):
         if self.task.taskType.name == 'Exercise':
             exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
         else:
-            exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+            exercise_pk = str(self.solutionData['exercisePk'][0])
+            exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=exercise_pk))
 
         self.copyUnitTestsToSolutionDir(exercisePath)
 
@@ -171,7 +174,8 @@ class PythonExecutor(SolutionExecutor):
                     if self.task.taskType.name == 'Exercise':
                         solution_exercise.exercise = self.task.exercise
                     else:
-                        solution_exercise.exercise = self.task.test.exercises.get(pk=self.solutionData['exercisePk'])
+                        exercise_pk = str(self.solutionData['exercisePk'][0])
+                        solution_exercise.exercise = self.task.test.exercises.get(pk=exercise_pk)
                 
                 solution_exercise.save()
 
