@@ -171,6 +171,7 @@ class JavaExecutor(SolutionExecutor):
         
         try:
             os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
+            self.logger.info("Uruchamiam polecenie " + str(self.testCommand) + " z lokalizacji " + self.fs.location)
             process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=True) # uruchomienie testow
 
             process_out = process.stdout.decode("utf-8")           

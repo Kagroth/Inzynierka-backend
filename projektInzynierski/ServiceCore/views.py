@@ -96,7 +96,16 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.get(pk=pk)        
             user_serializer = UserSerializer(user)
             solutions_serializer = SolutionSerializer(user.solutions.all(), many=True)
-            tasks_with_solutions_serializer = TaskWithSolutionData(user.membershipGroups.first().tasks.all(), many=True)
+
+            groups = user.membershipGroups.all()            
+            tasks = Task.objects.none()
+
+            for group in groups:
+                tasks = tasks.union(group.tasks.all())
+
+            tasks = tasks.distinct()
+
+            tasks_with_solutions_serializer = TaskWithSolutionData(tasks, many=True)
             response_data = {}        
             response_data['solutions'] = solutions_serializer.data
             response_data['user'] = user_serializer.data
