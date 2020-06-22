@@ -160,11 +160,11 @@ class PythonExecutor(SolutionExecutor):
                 self.logger.info(self.testCommand)
                 process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=False)
                             
-                result_file.write(process.stdout.decode("utf-8"))                           
-                result_file.write(process.stderr.decode("utf-8"))
+                result_file.write(process.stdout.decode("utf-8", errors='ignore'))                           
+                result_file.write(process.stderr.decode("utf-8", errors='ignore'))
 
-                print(process.stdout.decode("utf-8"))
-                print(process.stderr.decode("utf-8"))
+                print(process.stdout.decode("utf-8", errors='ignore'))
+                print(process.stderr.decode("utf-8", errors='ignore'))
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
                 solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object,
