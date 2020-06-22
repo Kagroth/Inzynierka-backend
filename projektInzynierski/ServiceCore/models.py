@@ -139,6 +139,9 @@ class Solution(models.Model):
     user = models.ForeignKey(User, related_name="solutions", on_delete=models.CASCADE)
     rate = models.FloatField(blank=True, null=True)  
 
+    def __str__(self):
+        return "Rozwiazanie nr {} - {}_{} - {}".format(self.pk, self.task.title, self.task.pk, self.user.username)
+
 class SolutionTest(models.Model):
     solution = models.OneToOneField(Solution, related_name="solution_test", on_delete=models.CASCADE)    
     rate = models.FloatField(blank=True, null=True)
@@ -150,3 +153,6 @@ class SolutionExercise(models.Model):
     pathToFile = models.FilePathField(max_length=1024)
     rate = models.FloatField(blank=True, null=True)
     github_link = models.CharField(max_length=4096, blank=True, null=True)
+
+    # def __str__(self):
+        # return "Rozwiazanie cwiczenia z kolokwium nr {} ".format()
