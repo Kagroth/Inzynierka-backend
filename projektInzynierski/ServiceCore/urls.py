@@ -27,6 +27,7 @@ urlpatterns = [
     path('my_students/', views.TeachersStudentsView.as_view()),
     path('reset_password/', views.ResetPasswordHashView.as_view()), # default view - wykorzysta parametr domyslny hash_string=None
     path('reset_password/<str:hash_string>', views.ResetPasswordHashView.as_view()),
+    path('maven_test/', views.MavenTestView.as_view()),
     path('', include(router.urls)),
     #path('users/', views.ListUsers.as_view()),
     #path('groups/', views.ListGroup.as_view()),
