@@ -28,6 +28,29 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer        
 
+class MavenTestView(APIView):
+    def get(self, request):
+        test_command = ['mvn', 'clean', 'test']
+        
+        shell = request.GET.get('shell')
+        print(shell)
+        shell = bool(shell)
+        print(shell)
+        
+        process = None
+
+        try:
+            process = subprocess.run(test_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
+        except Exception as e:
+            message = str(e)
+            print(message)
+            return Response({"err": message})
+
+        process_out = process.stdout.decode("utf-8", errors="ignore")           
+        process_err = process.stderr.decode("utf-8", errors="ignore")
+        
+        return Response({"out": process_out, "err": process_err})
+
 # zwraca liste studentow ktorzy sa czlonkami grup nauczyciela wysylajacego request 
 class TeachersStudentsView(APIView):
     permission_classes = (IsAuthenticated,)
