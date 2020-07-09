@@ -16,6 +16,27 @@ class PythonExecutor(SolutionExecutor):
         self.testCommand = self.testCommand = ['python', '-m', 'unittest', 'discover', '-v', '-s']
 
     def configureRuntime(self):
+        group = self.task.assigned_to
+                
+        if self.task.taskType.name == 'Exercise':
+            self.fs.location = getUserSolutionPath(self.task, group, self.user)
+        else:
+            exercise_pk = str(self.solutionData['exercisePk'])
+            print(exercise_pk)
+            self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=exercise_pk))
+
+        for filename in os.listdir(self.fs.location):
+            file_path = os.path.join(self.fs.location, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                else:
+                    print(file_path, "to nie jest plik")
+            except Exception as e:
+                self.logger.info("Nie udalo sie usunac istniejacego rozwiazania")
+                print("Nie udalo sie usunac istniejacego rozwiazania")
+
+
         self.solutionType = SolutionType.objects.get(name=self.solutionData['solutionType'])
         
         if self.solutionType.name == 'File':
@@ -167,28 +188,29 @@ class PythonExecutor(SolutionExecutor):
                 print(process.stderr.decode("utf-8", errors='ignore'))
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
-                solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object,
-                                                        pathToFile=os.path.join(self.fs.location, self.solutionData['filename']))
                 
-                if solution_exercise.exercise is None:
-                    if self.task.taskType.name == 'Exercise':
-                        solution_exercise.exercise = self.task.exercise
-                    else:
-                        exercise_pk = str(self.solutionData['exercisePk'][0])
-                        solution_exercise.exercise = self.task.test.exercises.get(pk=exercise_pk)
-                
-                solution_exercise.save()
-
                 if self.task.taskType.name == 'Test':
                     test_solution, created = SolutionTest.objects.update_or_create(solution=main_solution_object)
+                    exercise_pk = str(self.solutionData['exercisePk'][0])                    
+                    solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object, exercise=self.task.test.exercises.get(pk=exercise_pk))
+                    solution_exercise.pathToFile = os.path.join(self.fs.location, self.solutionData['filename'])
                     solution_exercise.test = test_solution
+                    
+                    if self.solutionType.name == 'GitHub-Repository':
+                        solution_exercise.github_link = self.solutionData['fileDownloadURL']
+
                     test_solution.save()
                     solution_exercise.save()
+                else:
+                    solution_exercise, created = SolutionExercise.objects.update_or_create(solution=main_solution_object)
+                    solution_exercise.pathToFile = os.path.join(self.fs.location, self.solutionData['filename'])
+                    solution_exercise.exercise = self.task.exercise
+                    
+                    if self.solutionType.name == 'GitHub-Repository':
+                        solution_exercise.github_link = self.solutionData['fileDownloadURL']
 
-                if self.solutionType.name == 'GitHub-Repository':
-                    solution_exercise.github_link = self.solutionData['fileDownloadURL']
-                
-                solution_exercise.save()
+                    solution_exercise.save()
+
         except Exception as e:
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
             return (False, False, "Nie udalo sie przetestowac kodu")

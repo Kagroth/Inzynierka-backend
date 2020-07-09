@@ -698,13 +698,17 @@ class SolutionViewSet(viewsets.ModelViewSet):
         else:
             solutionValue = []
 
-            for solution_exercise in solution.solution_test.exercises_solutions.all():
-                solution_file_path = solution_exercise.pathToFile
+            try:
+                for solution_exercise in solution.solution_test.exercises_solutions.all():
+                    solution_file_path = solution_exercise.pathToFile
                 
-                if os.path.isfile(solution_file_path):
-                    with open(solution_file_path, 'r') as f:
-                        solutionValue.append(f.read())
-
+                    if os.path.isfile(solution_file_path):
+                        with open(solution_file_path, 'r') as f:
+                            solutionValue.append(f.read())
+            except Exception as e:
+                logger.info("Uzytkownik nie przyslal rozwiazania - " + str(e))
+                return Response(serializer.data, status=400)
+                
         newdict['solutionValue'] = solutionValue
 
         print(newdict)

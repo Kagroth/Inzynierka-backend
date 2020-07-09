@@ -15,6 +15,27 @@ class JavaExecutor(SolutionExecutor):
         self.testCommand = ['mvn', 'clean', 'test']
     
     def configureRuntime(self):
+        group = self.task.assigned_to
+                
+        if self.task.taskType.name == 'Exercise':
+            self.fs.location = getUserSolutionPath(self.task, group, self.user)
+        else:
+            exercise_pk = self.solutionData['exercisePk']
+            self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=exercise_pk))
+
+        self.fs.location = os.path.join(self.fs.location, 'src', 'main', 'java')
+
+        for filename in os.listdir(self.fs.location):
+            file_path = os.path.join(self.fs.location, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                else:
+                    print(file_path, "to nie jest plik")
+            except Exception as e:
+                self.logger.info("Nie udalo sie usunac istniejacego rozwiazania")
+                print("Nie udalo sie usunac istniejacego rozwiazania")
+
         self.solutionType = SolutionType.objects.get(name=self.solutionData['solutionType'])
 
         if self.solutionType.name == 'File':
@@ -60,7 +81,7 @@ class JavaExecutor(SolutionExecutor):
             if self.task.taskType.name == 'Exercise':
                 solutionExtension = self.task.exercise.language.allowed_extension
             else:
-                solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk']).language.allowed_extension
+                solutionExtension = self.task.test.exercises.get(pk=self.solutionData['exercisePk'][0]).language.allowed_extension
             
             # tworze plik z rozwiazaniem
             group = self.task.assigned_to
@@ -68,9 +89,20 @@ class JavaExecutor(SolutionExecutor):
             if self.task.taskType.name == 'Exercise':
                 self.fs.location = getUserSolutionPath(self.task, group, self.user)
             else:
-                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
-                
-            self.solutionData['filename'] = 'Solution' + solutionExtension
+                self.fs.location = getUserSolutionPath(self.task, group, self.user, self.task.test.exercises.get(pk=self.solutionData['exercisePk'][0]))
+
+            # pobranie nazwy klasy i uzycie jej do nazwania pliku
+            fname = ''
+            splitted_tab = self.solutionData['solution'][0].split(" ")
+            
+            for index in range(0, len(splitted_tab)):
+                if splitted_tab[index].lower() == 'class':
+                    fname = splitted_tab[index + 1]
+                    print(fname)
+                    break
+
+            self.solutionData['filename'] = fname + solutionExtension
+            
 
             destinatedPath = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
                 
@@ -116,7 +148,7 @@ class JavaExecutor(SolutionExecutor):
         if self.task.taskType.name == 'Exercise':
             exercisePath = getExerciseDirectoryRootPath(self.task.exercise)
         else:
-            exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk']))
+            exercisePath = getExerciseDirectoryRootPath(self.task.test.exercises.get(pk=self.solutionData['exercisePk'][0]))
 
 
         self.copyUnitTestsToSolutionDir(exercisePath)
@@ -174,8 +206,8 @@ class JavaExecutor(SolutionExecutor):
             self.logger.info("Uruchamiam polecenie " + str(self.testCommand) + " z lokalizacji " + self.fs.location)
             process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=True) # uruchomienie testow
 
-            process_out = process.stdout.decode("utf-8")           
-            process_err = process.stderr.decode("utf-8")
+            process_out = process.stdout.decode("utf-8", errors='ignore')           
+            process_err = process.stderr.decode("utf-8", errors='ignore')
 
             print(process_out)
             print(process_err)
@@ -186,27 +218,28 @@ class JavaExecutor(SolutionExecutor):
 
                 main_solution_object = Solution.objects.get(task=self.task, user=self.user)
 
-                solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object,
-                                                                        pathToFile=os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename']))
-                
-                if solution_exercise.exercise is None:
-                    if self.task.taskType.name == 'Exercise':
-                        solution_exercise.exercise = self.task.exercise
-                    else:
-                        solution_exercise.exercise = self.task.test.exercises.get(pk=self.solutionData['exercisePk'])
-                
-                solution_exercise.save()
-                
                 if self.task.taskType.name == 'Test':
                     test_solution, created = SolutionTest.objects.update_or_create(solution=main_solution_object)
+                    exercise_pk = str(self.solutionData['exercisePk'][0])
+                    solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object, exercise=self.task.test.exercises.get(pk=exercise_pk))                                                                        
+                    solution_exercise.pathToFile = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
                     solution_exercise.test = test_solution
+
+                    if self.solutionType.name == 'GitHub-Repository':
+                        solution_exercise.github_link = self.solutionData['fileDownloadURL']
+                    
                     test_solution.save()
+                    solution_exercise.save()                    
+                else:
+                    solution_exercise, create = SolutionExercise.objects.update_or_create(solution=main_solution_object)                                                                        
+                    solution_exercise.pathToFile = os.path.join(self.fs.location, 'src', 'main', 'java', self.solutionData['filename'])
+                    solution_exercise.exercise = self.task.exercise
+
+                    if self.solutionType.name == 'GitHub-Repository':
+                        solution_exercise.github_link = self.solutionData['fileDownloadURL']
+
                     solution_exercise.save()
-                
-                if self.solutionType.name == 'GitHub-Repository':
-                    solution_exercise.github_link = self.solutionData['fileDownloadURL']
-                  
-                solution_exercise.save()
+
         except Exception as e:
             os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))            
             self.logger.info("Nie udalo sie przetestowac kodu - " + str(e))
