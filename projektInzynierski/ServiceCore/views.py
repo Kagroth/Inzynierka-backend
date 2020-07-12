@@ -178,7 +178,7 @@ class UserViewSet(viewsets.ModelViewSet):
                                         password=data['password'])
             user.save()
         except Exception as e:
-            logger.info("Nie udalo się utworzyć obiektu typu User " + e)
+            logger.info("Nie udalo się utworzyć obiektu typu User " + str(e))
             return Response({"message": serverError}, status=500)
 
         try: 
@@ -238,8 +238,8 @@ class GroupViewSet(viewsets.ModelViewSet):
                 newGroup.users.add(user)
             newGroup.save()
             logger.info("Grupa " + newGroup.name + " zostala utworzona")
-        except:
-            logger.info("Nastapil blad podczas tworzenia grupy")
+        except Exception as e:
+            logger.info("Nastapil blad podczas tworzenia grupy. " + str(e))
             return Response({"message": "Nastąpił błąd podczas tworzenia grupy"}, status=500)
 
         return Response({"message": "Grupa została utworzona"}, status=200)
@@ -380,7 +380,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             create_unit_tests(newExercise, data['unitTests'])
 
         except Exception as e:
-            logger.info("Nie udalo sie utworzyc obiektu Exercise - " + e)
+            logger.info("Nie udalo sie utworzyc obiektu Exercise - " + str(e))
             return Response({"message": "Nie udalo sie utworzyc obiektu Exercise"}, status=500)
 
         return Response({"message": "Utworzono Exercise"}, status=200)
@@ -415,7 +415,7 @@ class ExerciseViewSet(viewsets.ModelViewSet):
             exerciseTodelete.delete()   
             logger.info("Cwiczenie o pk=" + pk + " zostalo usuniete")         
         except Exception as e:
-            logger.info("Nie udalo sie usunac cwiczenia o pk=" + pk + " - " + e)
+            logger.info("Nie udalo sie usunac cwiczenia o pk=" + pk + " - " + str(e))
             return Response({"message": "Nie udalo sie usunac cwiczenia"})
         
         return Response({"message": "Cwiczenie zostalo usuniete"})
@@ -502,7 +502,7 @@ class TestViewSet(viewsets.ModelViewSet):
             testToDelete.delete()
 
         except Exception as e:
-            print(e)
+            print(str(e))
             return Response({"message": "Nie udalo sie usunac kolokwium"})
         
         return Response({"message": "Kolokwium zostalo usuniete"})
@@ -583,7 +583,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             createDirectoryForTaskSolutions(newTask)
 
         except Exception as e:
-            print(e)
+            print(str(e))
             logger.info("Nie udalo sie utworzyc zadania - " + str(e))
             return Response({"message": "Nie udalo sie utworzyc zadania"}, status=500)
 
