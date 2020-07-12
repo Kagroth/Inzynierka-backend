@@ -30,6 +30,7 @@ with open('secret_key.txt') as f:
 DEBUG = False
 
 ALLOWED_HOSTS = [
+    '*',
     '13.53.79.179',
     'localhost'
 ]
