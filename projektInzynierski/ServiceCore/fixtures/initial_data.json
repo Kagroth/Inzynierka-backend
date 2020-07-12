@@ -77,7 +77,7 @@
         "fields": {
             "pathToFile": "D:\\Materialy\\Seminarium\\Inzynierka\\backend\\projektInzynierski\\exercises\\Sortowanieb\u0105belkowe-nauczyciel-116\\test_unit.py",
             "exercise": 116,
-            "content": "arr = [4, 2, 5, 1, 3]\nself.assertEqual(bubble_sort(arr), [1, 2, 3, 4, 5])"
+            "content": "arr = [4, 2, 5, 1, 3]\nbubble_sort(arr)\nself.assertEqual(arr, [1, 2, 3, 4, 5])"
         }
     },
     {
@@ -86,7 +86,7 @@
         "fields": {
             "pathToFile": "D:\\Materialy\\Seminarium\\Inzynierka\\backend\\projektInzynierski\\exercises\\Sortowanieb\u0105belkowe-Java-nauczyciel-117\\src\\test\\java\\UnitTest.java",
             "exercise": 117,
-            "content": "BubbleSort bs = new BubbleSort();\nint[] arr= new int[]{2, 1, 5, 3, 4}; \nassertEquals(bs.sort(), new int[] {1, 2, 3, 4, 5});"
+            "content": "int[] arr= new int[]{2, 1, 5, 3, 4};\nBubbleSort.sort(arr)\nassertEquals(arr, new int[] {1, 2, 3, 4, 5});"
         }
     },
     {
