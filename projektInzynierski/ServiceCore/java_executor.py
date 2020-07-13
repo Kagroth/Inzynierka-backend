@@ -4,6 +4,7 @@ import logging
 from subprocess import PIPE
 from shutil import copy
 
+from django.conf import settings
 from ServiceCore.models import Solution, SolutionExercise, SolutionTest
 from ServiceCore.solution_executor import *
 from ServiceCore.unit_tests_utils import get_java_package_name_from_file, insert_java_package_instruction
@@ -12,7 +13,7 @@ class JavaExecutor(SolutionExecutor):
     def __init__(self):
         SolutionExecutor.__init__(self)
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.testCommand = ['mvn', 'clean', 'test']
+        self.testCommand = [settings.MAVEN_HOME, 'test']
     
     def configureRuntime(self):
         group = self.task.assigned_to
@@ -204,7 +205,7 @@ class JavaExecutor(SolutionExecutor):
         try:
             os.chdir(self.fs.location) # zmiana folderu roboczego w celu uruchomienia testowania mavena
             self.logger.info("Uruchamiam polecenie " + str(self.testCommand) + " z lokalizacji " + self.fs.location)
-            process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=True) # uruchomienie testow
+            process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=False) # uruchomienie testow
 
             process_out = process.stdout.decode("utf-8", errors='ignore')           
             process_err = process.stderr.decode("utf-8", errors='ignore')
