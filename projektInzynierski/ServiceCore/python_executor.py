@@ -5,6 +5,7 @@ import requests
 from subprocess import PIPE
 from shutil import copy
 
+from django.conf import settings
 from ServiceCore.models import Solution, SolutionExercise, SolutionTest, Exercise
 from ServiceCore.solution_executor import *
 from ServiceCore.unit_tests_utils import insert_python_import_instruction
@@ -177,7 +178,7 @@ class PythonExecutor(SolutionExecutor):
 
         try:
             with open(os.path.join(self.fs.location, "result.txt"), "w") as result_file:
-                self.logger.info(os.getcwd())
+                self.logger.info(settings.BASE_DIR)
                 self.logger.info(self.testCommand)
                 process = subprocess.run(self.testCommand, stdout=PIPE, stderr=PIPE, shell=False)
                             

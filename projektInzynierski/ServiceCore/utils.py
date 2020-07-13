@@ -1,4 +1,5 @@
 import os
+from django.conf import settings
 from distutils.dir_util import copy_tree
 
 EXERCISES_TEMPLATES_DIRECTORY_ROOT = "exercises_templates"
@@ -22,7 +23,7 @@ def getExerciseDirectoryName(exercise):
 def getExerciseDirectoryRootPath(exercise):
     # funkcja zwraca sciezke do folderu z konkretnym cwiczeniem w ktorym sa skladowane unit testy
     directoryName = getExerciseDirectoryName(exercise)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
     
     return os.path.join(cwd, EXERCISES_DIRECTORY_ROOT, directoryName)
 
@@ -30,7 +31,7 @@ def createExerciseRootDirectory(exercise):
     # funkcja tworzy folder dla konkretnego cwiczenia w folderze glownym dla cwiczen
 
     directoryName = getExerciseDirectoryName(exercise)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
 
     pathToExercise = os.path.join(cwd, EXERCISES_DIRECTORY_ROOT, directoryName)
 
@@ -49,7 +50,7 @@ def createExerciseRootDirectory(exercise):
 def createExerciseDirectory(exercise, relPath):
     # funkcja tworzy folder dla cwiczenia exercise w lokalizacji relPath
     directoryName = getExerciseDirectoryName(exercise)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
 
     pathToExercise = os.path.join(cwd, relPath, directoryName)
 
@@ -64,7 +65,7 @@ def getTestDirectoryName(test):
 def getTestDirectoryRootPath(test):
     # Zwraca lokalizacje w ktorej zapisane jest kolokwium
     directoryName = getTestDirectoryName(test)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
     
     return os.path.join(cwd, TESTS_DIRECTORY_ROOT, directoryName)
 
@@ -72,7 +73,7 @@ def getTestDirectoryRootPath(test):
 def createTestRootDirectory(test):
     # funkcja tworzy folder dla kolokwium 'test' w folderze root dla kolokwium
     directoryName = getTestDirectoryName(test)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
     pathToTest = os.path.join(cwd, TESTS_DIRECTORY_ROOT, directoryName)
 
     created = createDirectory(pathToTest)
@@ -96,7 +97,7 @@ def createTestRootDirectory(test):
 def createTestDirectory(test, relPath):
     # funkcja tworzy folder dla kolokwium 'test' w lokalizacji relPath
     directoryName = getTestDirectoryName(test)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
     pathToTest = os.path.join(cwd, relPath, directoryName)
 
     created = createDirectory(pathToTest)
@@ -126,7 +127,7 @@ def getUserSolutionPath(task, group, user, exercise=None):
         taskDirName = getTaskSolutionsDirectoryName(task)
         groupName = group.name + '-' + str(group.pk)
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
-        cwd = os.getcwd()
+        cwd = settings.BASE_DIR
 
         #if task.exercise.language.name == 'Java':
         #    return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, 'src', 'main', 'java')
@@ -136,7 +137,7 @@ def getUserSolutionPath(task, group, user, exercise=None):
         taskDirName = getTaskSolutionsDirectoryName(task)
         groupName = group.name + '-' + str(group.pk)
         userName = user.username.replace(" ", "") + '-' + str(user.pk)
-        cwd = os.getcwd()
+        cwd = settings.BASE_DIR
 
         return os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, taskDirName, groupName, userName, getExerciseDirectoryName(exercise))   
 
@@ -152,7 +153,7 @@ def createExerciseSolutionDirectory(task):
     
     directoryName = getTaskSolutionsDirectoryName(task)
 
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
     pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
     
     if not createDirectory(pathToSolution):
@@ -192,7 +193,7 @@ def createTestSolutionDirectory(task):
     #               - ExerciseB dir
     group = task.assigned_to 
     directoryName = getTaskSolutionsDirectoryName(task)
-    cwd = os.getcwd()
+    cwd = settings.BASE_DIR
     pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
 
     if not createDirectory(pathToSolution):
@@ -256,7 +257,7 @@ def createAllUserSolutionDirectory(group, user):
 
         if task_type == "Test":
             directoryName = getTaskSolutionsDirectoryName(task)
-            cwd = os.getcwd()
+            cwd = settings.BASE_DIR
             pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
             
             groupName = group.name + '-' + str(group.pk)
@@ -282,7 +283,7 @@ def createAllUserSolutionDirectory(group, user):
         elif task_type == "Exercise":            
             directoryName = getTaskSolutionsDirectoryName(task)
 
-            cwd = os.getcwd()
+            cwd = settings.BASE_DIR
             pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
 
             groupName = group.name + '-' + str(group.pk)
@@ -323,7 +324,7 @@ def changeGroupSolutionDirectoryName(group, newGroupName):
         else:
             return False
 
-        cwd = os.getcwd()
+        cwd = settings.BASE_DIR
         pathToSolution = os.path.join(cwd, SOLUTIONS_DIRECTORY_ROOT, directoryName)
         
         groupName = group.name + '-' + str(group.pk)
