@@ -18,13 +18,13 @@ from .email_conf import *
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# MAVEM_HOME = 'sciezka do pliku wykonywalnego mvn'
+MAVEN_HOME = 'sciezka do pliku wykonywalnego mvn np. /usr/share/maven/bin/mvn'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-with open('secret_key.txt') as f:
+with open(os.path.join(BASE_DIR, 'secret_key.txt')) as f:
     SECRET_KEY = f.read().strip()
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -32,7 +32,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     '*',
-    '13.53.79.179',
     'localhost'
 ]
 
@@ -88,18 +87,18 @@ WSGI_APPLICATION = 'projektInzynierski.wsgi.application'
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
 DATABASES = {
-    #'default': {
-    #    'ENGINE': 'django.db.backends.postgresql',
-    #    'NAME': 'inzynierka',
-    #    'USER': 'kamil',
-    #    'PASSWORD': 'student',
-    #    'HOST': 'localhost',
-    #    'PORT': '5432'
-    #},
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'inzynierka',
+        'USER': 'student',
+        'PASSWORD': 'student',
+        'HOST': 'localhost',
+        'PORT': '5432'
+    },
+    #'default': {
+    #    'ENGINE': 'django.db.backends.sqlite3',
+    #    'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    #}
 }
 
 
@@ -140,6 +139,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 CORS_ORIGIN_ALLOW_ALL = True
 
