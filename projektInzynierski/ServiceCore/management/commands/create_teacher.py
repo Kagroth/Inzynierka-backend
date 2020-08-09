@@ -16,9 +16,9 @@ class Command(BaseCommand):
         # parser.add_argument()
         parser.add_argument("firstname", help="Imie")
         parser.add_argument("lastname", help="Nazwisko")
-        parser.add_argument("email", help="Nazwisko")        
-        parser.add_argument("username", help="Nazwisko")
-        parser.add_argument("password", help="Nazwisko")
+        parser.add_argument("email", help="Adres email")        
+        parser.add_argument("username", help="Nazwa użytkownika - co najmniej 3 znaki")
+        parser.add_argument("password", help="Hasło - co najmniej 8 znaków")
 
     def handle(self, *args, **options):
         try:
