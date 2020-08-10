@@ -18,7 +18,7 @@ from .email_conf import *
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-MAVEN_HOME = 'sciezka do pliku wykonywalnego mvn np. /usr/share/maven/bin/mvn'
+MAVEN_HOME = '/usr/share/maven/bin/mvn'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
